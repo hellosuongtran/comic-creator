@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comic Creator — Dũng & Hà Lan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Bangers&family=Caveat:wght@400;700&family=Pangolin&family=Be+Vietnam+Pro:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
+<style>
+:root{--ink:#2C2416;--beige:#F2ECD8;--coral:#E08160;--sage:#7A9A78}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#111;color:#ddd;display:flex;height:100vh;overflow:hidden}
+#ed{width:310px;min-width:310px;background:#181818;padding:12px;overflow-y:auto;border-right:1px solid #222;display:flex;flex-direction:column;gap:7px}
+#ed h1{font-size:13px;font-weight:800;color:#fff}
+#ed .sub{font-size:9px;color:#444}
+.sec{background:#1f1f1f;border-radius:6px;padding:9px;border:1px solid #262626}
+.sec h3{font-size:9px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px}
+.f{margin-bottom:5px}
+.f label{display:block;font-size:9px;color:#666;margin-bottom:2px}
+.f input,.f textarea,.f select{width:100%;background:#111;border:1px solid #2e2e2e;border-radius:4px;color:#bbb;padding:4px 6px;font-size:10px;font-family:inherit;resize:vertical}
+.f input:focus,.f textarea:focus,.f select:focus{outline:none;border-color:#C85C3E}
+.f textarea{min-height:36px;line-height:1.4}
+.r2{display:flex;gap:4px}.r2 .f{flex:1}
+.pills{display:flex;gap:3px;flex-wrap:wrap}
+.pill{padding:3px 7px;border-radius:999px;border:1px solid #2e2e2e;background:#111;color:#555;font-size:9px;cursor:pointer;white-space:nowrap;transition:all .1s}
+.pill.on{border-color:#C85C3E;color:#C85C3E;background:#1e1008}
+.pill.b.on{border-color:#5B9BD5;color:#5B9BD5;background:#0d1828}
+.sws{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
+.sw{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .1s;flex-shrink:0}
+.sw.on{border-color:#fff;transform:scale(1.2)}
+.sw-c{position:relative;width:20px;height:20px}
+.sw-c .sw{border-style:dashed;border-color:#444}
+.sw-c input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.ped{background:#161616;border-radius:5px;padding:8px;border:1px solid #1e1e1e;margin-bottom:6px}
+.ped h4{font-size:9px;font-weight:700;color:#C85C3E;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.btn{display:inline-flex;align-items:center;gap:3px;padding:6px 12px;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;border:none;transition:opacity .1s;font-family:inherit}
+.btn-p{background:#C85C3E;color:#fff}.btn-s{background:#222;color:#888}
+.btn:hover{opacity:.85}.btn:disabled{opacity:.4;cursor:wait}
+.brow{display:flex;gap:5px;flex-wrap:wrap;padding-top:2px}
+#pv{flex:1;display:flex;align-items:center;justify-content:center;background:#0a0a0a;padding:12px;overflow:auto}
+#cw svg{display:block;border-radius:2px;box-shadow:0 10px 36px rgba(0,0,0,.85)}
+#ed::-webkit-scrollbar{width:3px}#ed::-webkit-scrollbar-track{background:#111}#ed::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:2px}
+
+/* tooltip */
+[title]{position:relative}
+[title]:hover::after{content:attr(title);position:fixed;background:#1a1a1a;color:#ddd;font-size:10px;padding:4px 8px;border-radius:4px;border:1px solid #333;white-space:nowrap;z-index:999;pointer-events:none;transform:translateX(-50%);margin-top:22px;left:50%}
+
+/* shape preview pills — show mini bubble icon */
+.pill.shape-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:4px 9px}
+</style>
+</head>
+<body>
+
+<!-- ═══ HIDDEN SVG SYMBOLS ═══ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+
+<!-- ── BACKGROUNDS ── viewBox 0 0 540 460 (panel-proportional) ── -->
+<symbol id="bg-plain" viewBox="0 0 540 460">
+  <!-- plain: just solid, nothing extra -->
+</symbol>
+
+<symbol id="bg-cafe" viewBox="0 0 540 460">
+  <!-- window light from right -->
+  <rect width="540" height="460" fill="none"/>
+  <!-- floor -->
+  <rect x="0" y="340" width="540" height="120" fill="#C8A878" opacity="0.3"/>
+  <!-- window frame right -->
+  <rect x="360" y="30" width="160" height="220" rx="4" fill="#F0E8D0" opacity="0.25"/>
+  <line x1="440" y1="30" x2="440" y2="250" stroke="#A08060" stroke-width="3" opacity="0.35"/>
+  <line x1="360" y1="140" x2="520" y2="140" stroke="#A08060" stroke-width="3" opacity="0.35"/>
+  <!-- window glow -->
+  <rect x="360" y="30" width="160" height="220" rx="4" fill="#FFF8E0" opacity="0.1"/>
+  <!-- table surface -->
+  <path d="M 60 340 Q 270 320 480 340 L 540 380 L 0 380 Z" fill="#8B6030" opacity="0.35"/>
+  <!-- mug left -->
+  <rect x="80" y="285" width="34" height="42" rx="5" fill="#F0E8D0" stroke="#6A4020" stroke-width="2" opacity="0.7"/>
+  <path d="M 114 295 Q 126 295 126 310 Q 126 325 114 325" fill="none" stroke="#6A4020" stroke-width="2" opacity="0.6"/>
+  <rect x="80" y="285" width="34" height="10" rx="3" fill="#6A4020" opacity="0.4"/>
+  <!-- bookshelf left bg -->
+  <rect x="0" y="60" width="70" height="250" fill="#5A3820" opacity="0.2"/>
+  <rect x="5" y="70" width="14" height="80" rx="2" fill="#A0604A" opacity="0.5"/>
+  <rect x="22" y="80" width="12" height="70" rx="2" fill="#4A7A5A" opacity="0.5"/>
+  <rect x="37" y="65" width="10" height="85" rx="2" fill="#8A7A40" opacity="0.5"/>
+  <rect x="50" y="75" width="13" height="75" rx="2" fill="#6A5A80" opacity="0.5"/>
+  <!-- wall texture dots -->
+  <circle cx="200" cy="100" r="2" fill="#A08060" opacity="0.15"/>
+  <circle cx="310" cy="180" r="1.5" fill="#A08060" opacity="0.12"/>
+  <circle cx="150" cy="220" r="1.8" fill="#A08060" opacity="0.1"/>
+</symbol>
+
+<symbol id="bg-street" viewBox="0 0 540 460">
+  <!-- sky gradient suggestion -->
+  <rect width="540" height="280" fill="#D4E8F0" opacity="0.18"/>
+  <!-- buildings BG -->
+  <rect x="0" y="80" width="120" height="260" rx="2" fill="#8890A0" opacity="0.25"/>
+  <rect x="130" y="50" width="90" height="290" rx="2" fill="#7A8090" opacity="0.22"/>
+  <rect x="230" y="100" width="80" height="240" rx="2" fill="#8890A0" opacity="0.2"/>
+  <rect x="370" y="60" width="100" height="280" rx="2" fill="#7A8090" opacity="0.22"/>
+  <rect x="480" y="90" width="60" height="250" rx="2" fill="#8890A0" opacity="0.2"/>
+  <!-- building windows -->
+  <rect x="15" y="110" width="18" height="22" rx="2" fill="#F0E870" opacity="0.3"/>
+  <rect x="45" y="110" width="18" height="22" rx="2" fill="#F0E870" opacity="0.2"/>
+  <rect x="75" y="110" width="18" height="22" rx="2" fill="#F0E870" opacity="0.25"/>
+  <rect x="145" y="80" width="16" height="20" rx="2" fill="#F0E870" opacity="0.25"/>
+  <rect x="175" y="80" width="16" height="20" rx="2" fill="#F0E870" opacity="0.18"/>
+  <rect x="385" y="90" width="16" height="20" rx="2" fill="#F0E870" opacity="0.22"/>
+  <rect x="415" y="90" width="16" height="20" rx="2" fill="#F0E870" opacity="0.18"/>
+  <!-- sidewalk -->
+  <rect x="0" y="340" width="540" height="120" fill="#B0A890" opacity="0.28"/>
+  <!-- sidewalk line -->
+  <line x1="0" y1="340" x2="540" y2="340" stroke="#8A8070" stroke-width="2" opacity="0.3"/>
+  <!-- road -->
+  <rect x="0" y="380" width="540" height="80" fill="#6A6A6A" opacity="0.2"/>
+  <!-- streetlight -->
+  <line x1="450" y1="60" x2="450" y2="340" stroke="#5A5A5A" stroke-width="4" opacity="0.3"/>
+  <path d="M 430 60 Q 450 40 470 50" fill="none" stroke="#5A5A5A" stroke-width="4" opacity="0.3"/>
+  <circle cx="470" cy="52" r="6" fill="#F0E870" opacity="0.4"/>
+  <!-- tree left -->
+  <line x1="80" y1="200" x2="80" y2="340" stroke="#5A4020" stroke-width="6" opacity="0.3"/>
+  <circle cx="80" cy="160" r="50" fill="#6A9A60" opacity="0.22"/>
+</symbol>
+
+<symbol id="bg-park" viewBox="0 0 540 460">
+  <!-- sky -->
+  <rect width="540" height="300" fill="#B8D8F0" opacity="0.15"/>
+  <!-- clouds -->
+  <ellipse cx="120" cy="80" rx="55" ry="22" fill="#fff" opacity="0.25"/>
+  <ellipse cx="160" cy="72" rx="40" ry="18" fill="#fff" opacity="0.2"/>
+  <ellipse cx="380" cy="60" rx="60" ry="20" fill="#fff" opacity="0.2"/>
+  <ellipse cx="420" cy="54" rx="40" ry="16" fill="#fff" opacity="0.18"/>
+  <!-- distant hills -->
+  <path d="M 0 240 Q 130 160 260 220 Q 390 160 540 220 L 540 300 L 0 300 Z" fill="#8AB878" opacity="0.2"/>
+  <!-- grass ground -->
+  <rect x="0" y="320" width="540" height="140" fill="#7AAA60" opacity="0.22"/>
+  <rect x="0" y="345" width="540" height="115" fill="#6A9A50" opacity="0.18"/>
+  <!-- bench -->
+  <rect x="350" y="295" width="140" height="10" rx="3" fill="#8B6030" opacity="0.45"/>
+  <rect x="360" y="285" width="120" height="8" rx="2" fill="#8B6030" opacity="0.4"/>
+  <rect x="358" y="305" width="10" height="30" rx="2" fill="#6A4010" opacity="0.4"/>
+  <rect x="472" y="305" width="10" height="30" rx="2" fill="#6A4010" opacity="0.4"/>
+  <!-- tree right -->
+  <line x1="480" y1="160" x2="480" y2="320" stroke="#5A3010" stroke-width="8" opacity="0.3"/>
+  <circle cx="480" cy="110" r="65" fill="#5A8840" opacity="0.25"/>
+  <circle cx="510" cy="130" r="40" fill="#6A9848" opacity="0.2"/>
+  <!-- tree left -->
+  <line x1="70" y1="180" x2="70" y2="320" stroke="#5A3010" stroke-width="7" opacity="0.28"/>
+  <circle cx="70" cy="130" r="55" fill="#5A8840" opacity="0.22"/>
+  <!-- path -->
+  <path d="M 170 460 Q 270 380 370 460" fill="none" stroke="#C8A870" stroke-width="28" opacity="0.2"/>
+  <!-- birds far -->
+  <path d="M 200 50 Q 205 44 210 50" fill="none" stroke="#4A4A5A" stroke-width="1.5" opacity="0.3"/>
+  <path d="M 220 40 Q 225 34 230 40" fill="none" stroke="#4A4A5A" stroke-width="1.5" opacity="0.25"/>
+</symbol>
+
+<symbol id="bg-room" viewBox="0 0 540 460">
+  <!-- wall -->
+  <rect width="540" height="320" fill="#EAE0D0" opacity="0.12"/>
+  <!-- floor -->
+  <rect x="0" y="320" width="540" height="140" fill="#B8A888" opacity="0.2"/>
+  <!-- floor line -->
+  <line x1="0" y1="320" x2="540" y2="320" stroke="#8A7860" stroke-width="1.5" opacity="0.2"/>
+  <!-- window left -->
+  <rect x="20" y="50" width="130" height="180" rx="4" fill="#D0E8F8" opacity="0.22"/>
+  <line x1="85" y1="50" x2="85" y2="230" stroke="#8A7060" stroke-width="3" opacity="0.3"/>
+  <line x1="20" y1="140" x2="150" y2="140" stroke="#8A7060" stroke-width="3" opacity="0.3"/>
+  <!-- curtain left -->
+  <path d="M 20 50 Q 40 100 30 180 L 20 230" fill="none" stroke="#D4B890" stroke-width="14" stroke-linecap="round" opacity="0.35"/>
+  <path d="M 150 50 Q 130 100 140 180 L 150 230" fill="none" stroke="#D4B890" stroke-width="14" stroke-linecap="round" opacity="0.35"/>
+  <!-- poster on wall -->
+  <rect x="390" y="40" width="110" height="140" rx="3" fill="#C8A080" opacity="0.25"/>
+  <rect x="395" y="45" width="100" height="130" rx="2" fill="#D0B898" opacity="0.2"/>
+  <!-- desk right -->
+  <rect x="390" y="290" width="150" height="14" rx="3" fill="#7A5030" opacity="0.3"/>
+  <rect x="400" y="304" width="10" height="30" rx="2" fill="#5A3820" opacity="0.3"/>
+  <rect x="520" y="304" width="10" height="30" rx="2" fill="#5A3820" opacity="0.3"/>
+  <!-- plant on desk -->
+  <line x1="465" y1="240" x2="465" y2="290" stroke="#5A7840" stroke-width="4" opacity="0.35"/>
+  <circle cx="465" cy="220" r="28" fill="#6A8840" opacity="0.28"/>
+  <!-- rug -->
+  <ellipse cx="270" cy="390" rx="150" ry="35" fill="#C08060" opacity="0.18"/>
+</symbol>
+
+<symbol id="bg-rooftop" viewBox="0 0 540 460">
+  <!-- sky evening gradient -->
+  <rect width="540" height="300" fill="#F0B060" opacity="0.12"/>
+  <rect width="540" height="150" fill="#E07040" opacity="0.08"/>
+  <!-- sun / glow -->
+  <circle cx="420" cy="120" r="50" fill="#F8C040" opacity="0.15"/>
+  <circle cx="420" cy="120" r="80" fill="#F8C040" opacity="0.06"/>
+  <!-- distant skyline -->
+  <rect x="0" y="180" width="80" height="200" fill="#3A4050" opacity="0.25"/>
+  <rect x="90" y="150" width="60" height="230" fill="#3A4050" opacity="0.22"/>
+  <rect x="160" y="200" width="50" height="180" fill="#3A4050" opacity="0.2"/>
+  <rect x="350" y="160" width="70" height="220" fill="#3A4050" opacity="0.22"/>
+  <rect x="430" y="190" width="55" height="190" fill="#3A4050" opacity="0.2"/>
+  <rect x="490" y="170" width="50" height="210" fill="#3A4050" opacity="0.22"/>
+  <!-- rooftop floor -->
+  <rect x="0" y="330" width="540" height="130" fill="#7A7878" opacity="0.25"/>
+  <rect x="0" y="330" width="540" height="12" fill="#8A8080" opacity="0.3"/>
+  <!-- railing -->
+  <line x1="0" y1="330" x2="540" y2="330" stroke="#5A5858" stroke-width="5" opacity="0.4"/>
+  <line x1="30" y1="330" x2="30" y2="290" stroke="#5A5858" stroke-width="3" opacity="0.35"/>
+  <line x1="100" y1="330" x2="100" y2="290" stroke="#5A5858" stroke-width="3" opacity="0.35"/>
+  <line x1="170" y1="330" x2="170" y2="290" stroke="#5A5858" stroke-width="3" opacity="0.35"/>
+  <line x1="240" y1="330" x2="240" y2="290" stroke="#5A5858" stroke-width="3" opacity="0.35"/>
+  <line x1="310" y1="330" x2="310" y2="290" stroke="#5A5858" stroke-width="3" opacity="0.35"/>
+  <line x1="380" y1="330" x2="380" y2="290" stroke="#5A5858" stroke-width="3" opacity="0.35"/>
+  <line x1="450" y1="330" x2="450" y2="290" stroke="#5A5858" stroke-width="3" opacity="0.35"/>
+  <line x1="510" y1="330" x2="510" y2="290" stroke="#5A5858" stroke-width="3" opacity="0.35"/>
+  <line x1="0" y1="290" x2="540" y2="290" stroke="#5A5858" stroke-width="2.5" opacity="0.35"/>
+  <!-- AC unit -->
+  <rect x="60" y="300" width="70" height="35" rx="3" fill="#6A6868" opacity="0.4"/>
+  <!-- water tank -->
+  <rect x="440" y="260" width="60" height="70" rx="4" fill="#5A5858" opacity="0.35"/>
+  <line x1="440" y1="285" x2="500" y2="285" stroke="#4A4848" stroke-width="2" opacity="0.3"/>
+  <!-- stars faint -->
+  <circle cx="60" cy="40" r="1.5" fill="#fff" opacity="0.4"/>
+  <circle cx="180" cy="25" r="1" fill="#fff" opacity="0.35"/>
+  <circle cx="300" cy="50" r="1.5" fill="#fff" opacity="0.3"/>
+  <circle cx="480" cy="30" r="1" fill="#fff" opacity="0.4"/>
+</symbol>
+
+<!-- ── DŨNG POSES (viewBox="-60 -80 120 160") ── -->
+<symbol id="dung-deadpan" viewBox="-60 -80 120 160">
+  <path d="M -55 80 Q -55 25 -28 12 L 28 12 Q 55 25 55 80 Z" fill="#7A9A78" stroke="#2C2416" stroke-width="2.2"/>
+  <path d="M -28 12 Q -10 4 10 4 Q 28 4 28 12" fill="none" stroke="#2C2416" stroke-width="1.6"/>
+  <line x1="-8" y1="14" x2="-9" y2="32" stroke="#2C2416" stroke-width="1.4"/>
+  <line x1="8" y1="14" x2="9" y2="32" stroke="#2C2416" stroke-width="1.4"/>
+  <circle cx="-9" cy="34" r="1.8" fill="#2C2416"/>
+  <circle cx="9" cy="34" r="1.8" fill="#2C2416"/>
+  <rect x="-10" y="-2" width="20" height="14" fill="#F4D4B8" stroke="#2C2416" stroke-width="1.6"/>
+  <ellipse cx="0" cy="-30" rx="36" ry="42" fill="#F4D4B8" stroke="#2C2416" stroke-width="2.2"/>
+  <ellipse cx="36" cy="-26" rx="4" ry="6" fill="#F4D4B8" stroke="#2C2416" stroke-width="1.4"/>
+  <path d="M -34 -48 Q -38 -78 -10 -78 Q 8 -82 28 -75 Q 40 -64 38 -32 L 34 -48 L 26 -38 L 18 -52 L 10 -40 L 2 -54 L -6 -40 L -14 -54 L -22 -42 L -30 -54 Z" fill="#2C2416"/>
+  <line x1="-36" y1="-30" x2="-36" y2="-18" stroke="#2C2416" stroke-width="1.2"/>
+  <line x1="-22" y1="-40" x2="-10" y2="-39" stroke="#2C2416" stroke-width="2"/>
+  <line x1="10" y1="-39" x2="22" y2="-40" stroke="#2C2416" stroke-width="2"/>
+  <ellipse cx="-14" cy="-30" rx="2.2" ry="2.8" fill="#2C2416"/>
+  <ellipse cx="14" cy="-30" rx="2.2" ry="2.8" fill="#2C2416"/>
+  <path d="M 0 -28 Q 3 -14 0 -8" fill="none" stroke="#2C2416" stroke-width="1.4"/>
+  <line x1="-9" y1="-2" x2="9" y2="-2" stroke="#2C2416" stroke-width="1.8"/>
+  <ellipse cx="-22" cy="-10" rx="5" ry="3" fill="#F5B5A0" opacity="0.5"/>
+  <ellipse cx="22" cy="-10" rx="5" ry="3" fill="#F5B5A0" opacity="0.5"/>
+</symbol>
+
+<symbol id="dung-sweat" viewBox="-60 -80 120 160">
+  <path d="M -55 80 Q -55 25 -28 12 L 28 12 Q 55 25 55 80 Z" fill="#7A9A78" stroke="#2C2416" stroke-width="2.2"/>
+  <path d="M -28 12 Q -10 4 10 4 Q 28 4 28 12" fill="none" stroke="#2C2416" stroke-width="1.6"/>
+  <line x1="-8" y1="14" x2="-9" y2="32" stroke="#2C2416" stroke-width="1.4"/>
+  <line x1="8" y1="14" x2="9" y2="32" stroke="#2C2416" stroke-width="1.4"/>
+  <circle cx="-9" cy="34" r="1.8" fill="#2C2416"/>
+  <circle cx="9" cy="34" r="1.8" fill="#2C2416"/>
+  <rect x="-10" y="-2" width="20" height="14" fill="#F4D4B8" stroke="#2C2416" stroke-width="1.6"/>
+  <ellipse cx="0" cy="-30" rx="36" ry="42" fill="#F4D4B8" stroke="#2C2416" stroke-width="2.2"/>
+  <ellipse cx="36" cy="-26" rx="4" ry="6" fill="#F4D4B8" stroke="#2C2416" stroke-width="1.4"/>
+  <path d="M -34 -48 Q -38 -78 -10 -78 Q 8 -82 28 -75 Q 40 -64 38 -32 L 34 -48 L 26 -38 L 18 -52 L 10 -40 L 2 -54 L -6 -40 L -14 -54 L -22 -42 L -30 -54 Z" fill="#2C2416"/>
+  <line x1="-36" y1="-30" x2="-36" y2="-18" stroke="#2C2416" stroke-width="1.2"/>
+  <path d="M -22 -38 Q -16 -42 -10 -41" fill="none" stroke="#2C2416" stroke-width="2"/>
+  <path d="M 10 -41 Q 16 -42 22 -38" fill="none" stroke="#2C2416" stroke-width="2"/>
+  <ellipse cx="-14" cy="-30" rx="3" ry="3.4" fill="#F5F0E0" stroke="#2C2416" stroke-width="1.4"/>
+  <ellipse cx="-14" cy="-30" rx="1.6" ry="2" fill="#2C2416"/>
+  <ellipse cx="14" cy="-30" rx="3" ry="3.4" fill="#F5F0E0" stroke="#2C2416" stroke-width="1.4"/>
+  <ellipse cx="14" cy="-30" rx="1.6" ry="2" fill="#2C2416"/>
+  <path d="M 0 -28 Q 3 -14 0 -8" fill="none" stroke="#2C2416" stroke-width="1.4"/>
+  <line x1="-6" y1="-2" x2="6" y2="-2" stroke="#2C2416" stroke-width="1.8"/>
+  <path d="M 30 -50 Q 33 -42 36 -36 Q 38 -32 35 -30 Q 30 -30 28 -34 Q 28 -42 30 -50 Z" fill="#B8D4E8" stroke="#2C2416" stroke-width="1.4"/>
+  <ellipse cx="-22" cy="-12" rx="6" ry="3.5" fill="#F5B5A0" opacity="0.7"/>
+  <ellipse cx="22" cy="-12" rx="6" ry="3.5" fill="#F5B5A0" opacity="0.7"/>
+  <line x1="-46" y1="-58" x2="-42" y2="-50" stroke="#2C2416" stroke-width="1.6"/>
+  <line x1="-38" y1="-64" x2="-36" y2="-56" stroke="#2C2416" stroke-width="1.6"/>
+  <line x1="42" y1="-50" x2="46" y2="-58" stroke="#2C2416" stroke-width="1.6"/>
+  <line x1="36" y1="-56" x2="38" y2="-64" stroke="#2C2416" stroke-width="1.6"/>
+</symbol>
+
+<symbol id="dung-confused" viewBox="-60 -80 120 160">
+  <path d="M -55 80 Q -55 25 -28 12 L 28 12 Q 55 25 55 80 Z" fill="#7A9A78" stroke="#2C2416" stroke-width="2.2"/>
+  <path d="M -28 12 Q -10 4 10 4 Q 28 4 28 12" fill="none" stroke="#2C2416" stroke-width="1.6"/>
+  <line x1="-8" y1="14" x2="-9" y2="32" stroke="#2C2416" stroke-width="1.4"/>
+  <line x1="8" y1="14" x2="9" y2="32" stroke="#2C2416" stroke-width="1.4"/>
+  <circle cx="-9" cy="34" r="1.8" fill="#2C2416"/>
+  <circle cx="9" cy="34" r="1.8" fill="#2C2416"/>
+  <rect x="-10" y="-2" width="20" height="14" fill="#F4D4B8" stroke="#2C2416" stroke-width="1.6"/>
+  <ellipse cx="0" cy="-30" rx="36" ry="42" fill="#F4D4B8" stroke="#2C2416" stroke-width="2.2"/>
+  <ellipse cx="36" cy="-26" rx="4" ry="6" fill="#F4D4B8" stroke="#2C2416" stroke-width="1.4"/>
+  <path d="M -34 -48 Q -38 -78 -10 -78 Q 8 -82 28 -75 Q 40 -64 38 -32 L 34 -48 L 26 -38 L 18 -52 L 10 -40 L 2 -54 L -6 -40 L -14 -54 L -22 -42 L -30 -54 Z" fill="#2C2416"/>
+  <line x1="-36" y1="-30" x2="-36" y2="-18" stroke="#2C2416" stroke-width="1.2"/>
+  <line x1="-22" y1="-46" x2="-10" y2="-42" stroke="#2C2416" stroke-width="2.2"/>
+  <line x1="10" y1="-39" x2="22" y2="-40" stroke="#2C2416" stroke-width="2"/>
+  <ellipse cx="-14" cy="-31" rx="2.6" ry="3.2" fill="#2C2416"/>
+  <ellipse cx="14" cy="-30" rx="2.2" ry="2.8" fill="#2C2416"/>
+  <path d="M 0 -28 Q 3 -14 0 -8" fill="none" stroke="#2C2416" stroke-width="1.4"/>
+  <ellipse cx="0" cy="-2" rx="3" ry="2.5" fill="none" stroke="#2C2416" stroke-width="1.8"/>
+  <ellipse cx="-22" cy="-10" rx="5" ry="3" fill="#F5B5A0" opacity="0.45"/>
+  <ellipse cx="22" cy="-10" rx="5" ry="3" fill="#F5B5A0" opacity="0.45"/>
+</symbol>
+
+<!-- dung-angry: brows down hard, tight mouth, fists implied -->
+<symbol id="dung-angry" viewBox="-60 -80 120 160">
+  <path d="M -55 80 Q -55 25 -28 12 L 28 12 Q 55 25 55 80 Z" fill="#7A9A78" stroke="#2C2416" stroke-width="2.2"/>
+  <path d="M -28 12 Q -10 4 10 4 Q 28 4 28 12" fill="none" stroke="#2C2416" stroke-width="1.6"/>
+  <line x1="-8" y1="14" x2="-9" y2="32" stroke="#2C2416" stroke-width="1.4"/>
+  <line x1="8" y1="14" x2="9" y2="32" stroke="#2C2416" stroke-width="1.4"/>
+  <circle cx="-9" cy="34" r="1.8" fill="#2C2416"/>
+  <circle cx="9" cy="34" r="1.8" fill="#2C2416"/>
+  <rect x="-10" y="-2" width="20" height="14" fill="#F4D4B8" stroke="#2C2416" stroke-width="1.6"/>
+  <ellipse cx="0" cy="-30" rx="36" ry="42" fill="#F4D4B8" stroke="#2C2416" stroke-width="2.2"/>
+  <ellipse cx="36" cy="-26" rx="4" ry="6" fill="#F4D4B8" stroke="#2C2416" stroke-width="1.4"/>
+  <path d="M -34 -48 Q -38 -78 -10 -78 Q 8 -82 28 -75 Q 40 -64 38 -32 L 34 -48 L 26 -38 L 18 -52 L 10 -40 L 2 -54 L -6 -40 L -14 -54 L -22 -42 L -30 -54 Z" fill="#2C2416"/>
+  <line x1="-36" y1="-30" x2="-36" y2="-18" stroke="#2C2416" stroke-width="1.2"/>
+  <!-- angry brows: sharp V-shape inward -->
+  <line x1="-26" y1="-44" x2="-8" y2="-36" stroke="#2C2416" stroke-width="3"/>
+  <line x1="8" y1="-36" x2="26" y2="-44" stroke="#2C2416" stroke-width="3"/>
+  <!-- flat sharp eyes -->
+  <line x1="-22" y1="-30" x2="-8" y2="-30" stroke="#2C2416" stroke-width="3.5"/>
+  <line x1="8" y1="-30" x2="22" y2="-30" stroke="#2C2416" stroke-width="3.5"/>
+  <ellipse cx="-15" cy="-30" rx="2" ry="1.5" fill="#2C2416"/>
+  <ellipse cx="15" cy="-30" rx="2" ry="1.5" fill="#2C2416"/>
+  <path d="M 0 -28 Q 3 -14 0 -8" fill="none" stroke="#2C2416" stroke-width="1.4"/>
+  <!-- tight scowl mouth -->
+  <path d="M -12 -2 Q -4 -6 4 -6 Q 8 -5 12 -2" fill="none" stroke="#2C2416" stroke-width="2.2"/>
+  <!-- anger mark on forehead -->
+  <path d="M 28 -56 L 32 -48 L 40 -52" fill="none" stroke="#E05030" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 36 -56 L 34 -48 L 42 -50" fill="none" stroke="#E05030" stroke-width="2" stroke-linecap="round"/>
+  <ellipse cx="-22" cy="-10" rx="5" ry="3" fill="#F5B5A0" opacity="0.4"/>
+  <ellipse cx="22" cy="-10" rx="5" ry="3" fill="#F5B5A0" opacity="0.4"/>
+</symbol>
+
+<!-- dung-sigh: eyes half closed, slight slouch, sigh marks -->
+<symbol id="dung-sigh" viewBox="-60 -80 120 160">
+  <path d="M -55 80 Q -55 30 -28 14 L 28 14 Q 55 30 55 80 Z" fill="#7A9A78" stroke="#2C2416" stroke-width="2.2"/>
+  <path d="M -28 14 Q -10 6 10 6 Q 28 6 28 14" fill="none" stroke="#2C2416" stroke-width="1.6"/>
+  <line x1="-8" y1="16" x2="-9" y2="34" stroke="#2C2416" stroke-width="1.4"/>
+  <line x1="8" y1="16" x2="9" y2="34" stroke="#2C2416" stroke-width="1.4"/>
+  <circle cx="-9" cy="36" r="1.8" fill="#2C2416"/>
+  <circle cx="9" cy="36" r="1.8" fill="#2C2416"/>
+  <rect x="-10" y="0" width="20" height="14" fill="#F4D4B8" stroke="#2C2416" stroke-width="1.6"/>
+  <!-- head slightly tilted -->
+  <ellipse cx="-4" cy="-28" rx="36" ry="42" fill="#F4D4B8" stroke="#2C2416" stroke-width="2.2"/>
+  <ellipse cx="34" cy="-24" rx="4" ry="6" fill="#F4D4B8" stroke="#2C2416" stroke-width="1.4"/>
+  <path d="M -36 -46 Q -40 -78 -12 -78 Q 6 -82 26 -75 Q 38 -64 36 -32 L 32 -48 L 24 -38 L 16 -52 L 8 -40 L 0 -54 L -8 -40 L -16 -54 L -24 -42 L -32 -54 Z" fill="#2C2416"/>
+  <line x1="-38" y1="-28" x2="-38" y2="-16" stroke="#2C2416" stroke-width="1.2"/>
+  <!-- half-closed tired eyes -->
+  <path d="M -24 -30 Q -14 -34 -4 -30" fill="none" stroke="#2C2416" stroke-width="2.5"/>
+  <path d="M -24 -30 Q -14 -26 -4 -30" fill="none" stroke="#2C2416" stroke-width="1.5" opacity="0.5"/>
+  <ellipse cx="-14" cy="-29" rx="2.5" ry="1.8" fill="#2C2416"/>
+  <path d="M 4 -30 Q 14 -34 24 -30" fill="none" stroke="#2C2416" stroke-width="2.5"/>
+  <path d="M 4 -30 Q 14 -26 24 -30" fill="none" stroke="#2C2416" stroke-width="1.5" opacity="0.5"/>
+  <ellipse cx="14" cy="-29" rx="2.5" ry="1.8" fill="#2C2416"/>
+  <!-- relaxed brows -->
+  <line x1="-24" y1="-38" x2="-8" y2="-37" stroke="#2C2416" stroke-width="1.8"/>
+  <line x1="8" y1="-37" x2="24" y2="-38" stroke="#2C2416" stroke-width="1.8"/>
+  <path d="M -2 -26 Q 1 -12 -2 -6" fill="none" stroke="#2C2416" stroke-width="1.4"/>
+  <!-- slight sad curve mouth -->
+  <path d="M -10 -2 Q -2 -6 6 -2" fill="none" stroke="#2C2416" stroke-width="1.8"/>
+  <!-- sigh breath puff -->
+  <path d="M 38 -18 Q 46 -18 52 -14 Q 58 -10 54 -6" fill="none" stroke="#B8D0E0" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+  <path d="M 42 -10 Q 50 -10 54 -6" fill="none" stroke="#B8D0E0" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  <ellipse cx="-22" cy="-10" rx="5" ry="3" fill="#F5B5A0" opacity="0.45"/>
+  <ellipse cx="22" cy="-10" rx="5" ry="3" fill="#F5B5A0" opacity="0.45"/>
+</symbol>
+
+<!-- ── HÀ LAN POSES ── -->
+<symbol id="halan-reading" viewBox="-60 -80 120 160">
+  <path d="M -55 80 Q -55 25 -32 14 L 32 14 Q 55 25 55 80 Z" fill="#DBC8A8" stroke="#2C2416" stroke-width="2.2"/>
+  <path d="M -10 14 L -2 28 L 0 14 Z" fill="#F5F0E0" stroke="#2C2416" stroke-width="1.4"/>
+  <path d="M 10 14 L 2 28 L 0 14 Z" fill="#F5F0E0" stroke="#2C2416" stroke-width="1.4"/>
+  <line x1="0" y1="14" x2="0" y2="80" stroke="#2C2416" stroke-width="1.4"/>
+  <rect x="-9" y="0" width="18" height="14" fill="#F4D4B8" stroke="#2C2416" stroke-width="1.6"/>
+  <ellipse cx="0" cy="-28" rx="34" ry="40" fill="#F4D4B8" stroke="#2C2416" stroke-width="2.2"/>
+  <path d="M -34 -38 Q -42 -72 -10 -76 Q 12 -80 30 -68 Q 42 -54 38 -22 Q 30 -36 18 -38 Q 4 -42 -8 -38 Q -22 -42 -34 -22 Z" fill="#3A2818"/>
+  <path d="M -34 -10 Q -42 18 -34 50 Q -32 60 -28 64" fill="none" stroke="#3A2818" stroke-width="6"/>
+  <path d="M -28 -2 Q -34 22 -28 48" fill="none" stroke="#3A2818" stroke-width="3"/>
+  <path d="M 34 -10 Q 42 18 34 50 Q 32 60 28 64" fill="none" stroke="#3A2818" stroke-width="6"/>
+  <path d="M 28 -2 Q 34 22 28 48" fill="none" stroke="#3A2818" stroke-width="3"/>
+  <circle cx="-34" cy="-14" r="2.2" fill="#2C2416"/>
+  <circle cx="34" cy="-14" r="2.2" fill="#2C2416"/>
+  <line x1="-20" y1="-34" x2="-8" y2="-33" stroke="#2C2416" stroke-width="1.8"/>
+  <line x1="8" y1="-33" x2="20" y2="-34" stroke="#2C2416" stroke-width="1.8"/>
+  <path d="M -18 -24 Q -14 -19 -10 -24" fill="none" stroke="#2C2416" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 10 -24 Q 14 -19 18 -24" fill="none" stroke="#2C2416" stroke-width="2" stroke-linecap="round"/>
+  <line x1="-19" y1="-26" x2="-20" y2="-29" stroke="#2C2416" stroke-width="1"/>
+  <line x1="19" y1="-26" x2="20" y2="-29" stroke="#2C2416" stroke-width="1"/>
+  <path d="M 0 -22 Q 3 -10 0 -4" fill="none" stroke="#2C2416" stroke-width="1.4"/>
+  <path d="M -6 4 Q 0 6 6 4" fill="none" stroke="#2C2416" stroke-width="1.6"/>
+  <ellipse cx="-22" cy="-6" rx="5" ry="3" fill="#F5B5A0" opacity="0.55"/>
+  <ellipse cx="22" cy="-6" rx="5" ry="3" fill="#F5B5A0" opacity="0.55"/>
+</symbol>
+
+<symbol id="halan-smirk" viewBox="-60 -80 120 160">
+  <path d="M -55 80 Q -55 25 -32 14 L 32 14 Q 55 25 55 80 Z" fill="#DBC8A8" stroke="#2C2416" stroke-width="2.2"/>
+  <path d="M -10 14 L -2 28 L 0 14 Z" fill="#F5F0E0" stroke="#2C2416" stroke-width="1.4"/>
+  <path d="M 10 14 L 2 28 L 0 14 Z" fill="#F5F0E0" stroke="#2C2416" stroke-width="1.4"/>
+  <line x1="0" y1="14" x2="0" y2="80" stroke="#2C2416" stroke-width="1.4"/>
+  <rect x="-9" y="0" width="18" height="14" fill="#F4D4B8" stroke="#2C2416" stroke-width="1.6"/>
+  <ellipse cx="0" cy="-28" rx="34" ry="40" fill="#F4D4B8" stroke="#2C2416" stroke-width="2.2"/>
+  <path d="M -34 -38 Q -42 -72 -10 -76 Q 12 -80 30 -68 Q 42 -54 38 -22 Q 30 -36 18 -38 Q 4 -42 -8 -38 Q -22 -42 -34 -22 Z" fill="#3A2818"/>
+  <path d="M -34 -10 Q -42 18 -34 50 Q -32 60 -28 64" fill="none" stroke="#3A2818" stroke-width="6"/>
+  <path d="M -28 -2 Q -34 22 -28 48" fill="none" stroke="#3A2818" stroke-width="3"/>
+  <path d="M 34 -10 Q 42 18 34 50 Q 32 60 28 64" fill="none" stroke="#3A2818" stroke-width="6"/>
+  <path d="M 28 -2 Q 34 22 28 48" fill="none" stroke="#3A2818" stroke-width="3"/>
+  <circle cx="-34" cy="-14" r="2.2" fill="#2C2416"/>
+  <circle cx="34" cy="-14" r="2.2" fill="#2C2416"/>
+  <line x1="-20" y1="-36" x2="-8" y2="-35" stroke="#2C2416" stroke-width="1.8"/>
+  <line x1="8" y1="-35" x2="20" y2="-36" stroke="#2C2416" stroke-width="1.8"/>
+  <ellipse cx="-14" cy="-26" rx="2.4" ry="3" fill="#2C2416"/>
+  <ellipse cx="14" cy="-26" rx="2.4" ry="3" fill="#2C2416"/>
+  <line x1="-19" y1="-30" x2="-12" y2="-30" stroke="#2C2416" stroke-width="1.4"/>
+  <line x1="12" y1="-30" x2="19" y2="-30" stroke="#2C2416" stroke-width="1.4"/>
+  <path d="M 0 -22 Q 3 -10 0 -4" fill="none" stroke="#2C2416" stroke-width="1.4"/>
+  <path d="M -7 4 Q -2 8 6 3" fill="none" stroke="#2C2416" stroke-width="1.8"/>
+  <ellipse cx="-22" cy="-6" rx="5" ry="3" fill="#F5B5A0" opacity="0.55"/>
+  <ellipse cx="22" cy="-6" rx="5" ry="3" fill="#F5B5A0" opacity="0.55"/>
+</symbol>
+
+<symbol id="halan-embarrassed" viewBox="-60 -80 120 160">
+  <path d="M -55 80 Q -55 25 -32 14 L 32 14 Q 55 25 55 80 Z" fill="#DBC8A8" stroke="#2C2416" stroke-width="2.2"/>
+  <path d="M -10 14 L -2 28 L 0 14 Z" fill="#F5F0E0" stroke="#2C2416" stroke-width="1.4"/>
+  <path d="M 10 14 L 2 28 L 0 14 Z" fill="#F5F0E0" stroke="#2C2416" stroke-width="1.4"/>
+  <line x1="0" y1="14" x2="0" y2="80" stroke="#2C2416" stroke-width="1.4"/>
+  <rect x="-9" y="0" width="18" height="14" fill="#F4D4B8" stroke="#2C2416" stroke-width="1.6"/>
+  <ellipse cx="0" cy="-28" rx="34" ry="40" fill="#F4D4B8" stroke="#2C2416" stroke-width="2.2"/>
+  <path d="M -34 -38 Q -42 -72 -10 -76 Q 12 -80 30 -68 Q 42 -54 38 -22 Q 30 -36 18 -38 Q 4 -42 -8 -38 Q -22 -42 -34 -22 Z" fill="#3A2818"/>
+  <path d="M -34 -10 Q -42 18 -34 50 Q -32 60 -28 64" fill="none" stroke="#3A2818" stroke-width="6"/>
+  <path d="M -28 -2 Q -34 22 -28 48" fill="none" stroke="#3A2818" stroke-width="3"/>
+  <path d="M 34 -10 Q 42 18 34 50 Q 32 60 28 64" fill="none" stroke="#3A2818" stroke-width="6"/>
+  <path d="M 28 -2 Q 34 22 28 48" fill="none" stroke="#3A2818" stroke-width="3"/>
+  <circle cx="-34" cy="-14" r="2.2" fill="#2C2416"/>
+  <circle cx="34" cy="-14" r="2.2" fill="#2C2416"/>
+  <path d="M -22 -36 Q -14 -38 -8 -34" fill="none" stroke="#2C2416" stroke-width="2"/>
+  <path d="M 8 -34 Q 14 -38 22 -36" fill="none" stroke="#2C2416" stroke-width="2"/>
+  <path d="M -20 -26 Q -14 -22 -8 -26" fill="none" stroke="#2C2416" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 8 -26 Q 14 -22 20 -26" fill="none" stroke="#2C2416" stroke-width="2" stroke-linecap="round"/>
+  <line x1="-20" y1="-26" x2="-22" y2="-30" stroke="#2C2416" stroke-width="1"/>
+  <line x1="20" y1="-26" x2="22" y2="-30" stroke="#2C2416" stroke-width="1"/>
+  <path d="M 0 -22 Q 3 -10 0 -4" fill="none" stroke="#2C2416" stroke-width="1.4"/>
+  <path d="M -5 5 Q 0 3 5 5" fill="none" stroke="#2C2416" stroke-width="1.8"/>
+  <ellipse cx="-22" cy="-8" rx="9" ry="5" fill="#F08070" opacity="0.6"/>
+  <ellipse cx="22" cy="-8" rx="9" ry="5" fill="#F08070" opacity="0.6"/>
+  <line x1="-28" y1="-6" x2="-22" y2="-6" stroke="#C25A4A" stroke-width="1" opacity="0.5"/>
+  <line x1="-26" y1="-3" x2="-20" y2="-3" stroke="#C25A4A" stroke-width="1" opacity="0.5"/>
+  <line x1="22" y1="-6" x2="28" y2="-6" stroke="#C25A4A" stroke-width="1" opacity="0.5"/>
+  <line x1="20" y1="-3" x2="26" y2="-3" stroke="#C25A4A" stroke-width="1" opacity="0.5"/>
+</symbol>
+
+<!-- halan-cold: arms crossed implied, icy stare, flat expression -->
+<symbol id="halan-cold" viewBox="-60 -80 120 160">
+  <!-- body: arms visually crossed (slightly different shoulder line) -->
+  <path d="M -55 80 Q -55 25 -32 14 L -10 10 L 10 10 L 32 14 Q 55 25 55 80 Z" fill="#DBC8A8" stroke="#2C2416" stroke-width="2.2"/>
+  <!-- arms crossed suggestion via shading bands -->
+  <path d="M -50 30 Q -20 18 20 22 Q 50 26 50 45" fill="none" stroke="#C4B090" stroke-width="8" stroke-linecap="round"/>
+  <path d="M -10 14 L -2 28 L 0 14 Z" fill="#F5F0E0" stroke="#2C2416" stroke-width="1.4"/>
+  <path d="M 10 14 L 2 28 L 0 14 Z" fill="#F5F0E0" stroke="#2C2416" stroke-width="1.4"/>
+  <line x1="0" y1="14" x2="0" y2="80" stroke="#2C2416" stroke-width="1.4"/>
+  <rect x="-9" y="0" width="18" height="14" fill="#F4D4B8" stroke="#2C2416" stroke-width="1.6"/>
+  <ellipse cx="0" cy="-28" rx="34" ry="40" fill="#F4D4B8" stroke="#2C2416" stroke-width="2.2"/>
+  <path d="M -34 -38 Q -42 -72 -10 -76 Q 12 -80 30 -68 Q 42 -54 38 -22 Q 30 -36 18 -38 Q 4 -42 -8 -38 Q -22 -42 -34 -22 Z" fill="#3A2818"/>
+  <path d="M -34 -10 Q -42 18 -34 50 Q -32 60 -28 64" fill="none" stroke="#3A2818" stroke-width="6"/>
+  <path d="M -28 -2 Q -34 22 -28 48" fill="none" stroke="#3A2818" stroke-width="3"/>
+  <path d="M 34 -10 Q 42 18 34 50 Q 32 60 28 64" fill="none" stroke="#3A2818" stroke-width="6"/>
+  <path d="M 28 -2 Q 34 22 28 48" fill="none" stroke="#3A2818" stroke-width="3"/>
+  <circle cx="-34" cy="-14" r="2.2" fill="#2C2416"/>
+  <circle cx="34" cy="-14" r="2.2" fill="#2C2416"/>
+  <!-- flat cold brows: straight horizontal, low -->
+  <line x1="-22" y1="-36" x2="-8" y2="-36" stroke="#2C2416" stroke-width="2.5"/>
+  <line x1="8" y1="-36" x2="22" y2="-36" stroke="#2C2416" stroke-width="2.5"/>
+  <!-- half-lid eyes, icy -->
+  <ellipse cx="-14" cy="-26" rx="5" ry="4" fill="#F5F0E0" stroke="#2C2416" stroke-width="1.5"/>
+  <ellipse cx="-14" cy="-26" rx="2.5" ry="3" fill="#2C2416"/>
+  <line x1="-20" y1="-28" x2="-8" y2="-28" stroke="#2C2416" stroke-width="2.5"/><!-- heavy upper lid -->
+  <ellipse cx="14" cy="-26" rx="5" ry="4" fill="#F5F0E0" stroke="#2C2416" stroke-width="1.5"/>
+  <ellipse cx="14" cy="-26" rx="2.5" ry="3" fill="#2C2416"/>
+  <line x1="8" y1="-28" x2="20" y2="-28" stroke="#2C2416" stroke-width="2.5"/>
+  <path d="M 0 -22 Q 3 -10 0 -4" fill="none" stroke="#2C2416" stroke-width="1.4"/>
+  <!-- thin flat mouth -->
+  <line x1="-9" y1="2" x2="9" y2="2" stroke="#2C2416" stroke-width="2"/>
+  <!-- minimal blush -->
+  <ellipse cx="-22" cy="-6" rx="4" ry="2.5" fill="#F5B5A0" opacity="0.3"/>
+  <ellipse cx="22" cy="-6" rx="4" ry="2.5" fill="#F5B5A0" opacity="0.3"/>
+</symbol>
+
+<!-- halan-happy: upturned curved eyes, wide smile, happy cheeks -->
+<symbol id="halan-happy" viewBox="-60 -80 120 160">
+  <path d="M -55 80 Q -55 25 -32 14 L 32 14 Q 55 25 55 80 Z" fill="#DBC8A8" stroke="#2C2416" stroke-width="2.2"/>
+  <path d="M -10 14 L -2 28 L 0 14 Z" fill="#F5F0E0" stroke="#2C2416" stroke-width="1.4"/>
+  <path d="M 10 14 L 2 28 L 0 14 Z" fill="#F5F0E0" stroke="#2C2416" stroke-width="1.4"/>
+  <line x1="0" y1="14" x2="0" y2="80" stroke="#2C2416" stroke-width="1.4"/>
+  <rect x="-9" y="0" width="18" height="14" fill="#F4D4B8" stroke="#2C2416" stroke-width="1.6"/>
+  <ellipse cx="0" cy="-28" rx="34" ry="40" fill="#F4D4B8" stroke="#2C2416" stroke-width="2.2"/>
+  <path d="M -34 -38 Q -42 -72 -10 -76 Q 12 -80 30 -68 Q 42 -54 38 -22 Q 30 -36 18 -38 Q 4 -42 -8 -38 Q -22 -42 -34 -22 Z" fill="#3A2818"/>
+  <path d="M -34 -10 Q -42 18 -34 50 Q -32 60 -28 64" fill="none" stroke="#3A2818" stroke-width="6"/>
+  <path d="M -28 -2 Q -34 22 -28 48" fill="none" stroke="#3A2818" stroke-width="3"/>
+  <path d="M 34 -10 Q 42 18 34 50 Q 32 60 28 64" fill="none" stroke="#3A2818" stroke-width="6"/>
+  <path d="M 28 -2 Q 34 22 28 48" fill="none" stroke="#3A2818" stroke-width="3"/>
+  <circle cx="-34" cy="-14" r="2.2" fill="#2C2416"/>
+  <circle cx="34" cy="-14" r="2.2" fill="#2C2416"/>
+  <!-- happy curved brows -->
+  <path d="M -22 -40 Q -14 -44 -8 -40" fill="none" stroke="#2C2416" stroke-width="2"/>
+  <path d="M 8 -40 Q 14 -44 22 -40" fill="none" stroke="#2C2416" stroke-width="2"/>
+  <!-- happy ^^ eyes (curved upward arcs, closed happy) -->
+  <path d="M -22 -28 Q -14 -22 -6 -28" fill="none" stroke="#2C2416" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 6 -28 Q 14 -22 22 -28" fill="none" stroke="#2C2416" stroke-width="3" stroke-linecap="round"/>
+  <!-- rosy cheeks big -->
+  <ellipse cx="-24" cy="-10" rx="9" ry="5" fill="#F08080" opacity="0.45"/>
+  <ellipse cx="24" cy="-10" rx="9" ry="5" fill="#F08080" opacity="0.45"/>
+  <path d="M 0 -22 Q 3 -10 0 -4" fill="none" stroke="#2C2416" stroke-width="1.4"/>
+  <!-- big happy smile -->
+  <path d="M -14 2 Q 0 14 14 2" fill="none" stroke="#2C2416" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- small sparkle -->
+  <line x1="38" y1="-52" x2="38" y2="-44" stroke="#F0C040" stroke-width="1.8" opacity="0.8"/>
+  <line x1="34" y1="-48" x2="42" y2="-48" stroke="#F0C040" stroke-width="1.8" opacity="0.8"/>
+</symbol>
+
+<!-- paper pattern -->
+<pattern id="paperBg" x="0" y="0" width="160" height="160" patternUnits="userSpaceOnUse">
+  <rect width="160" height="160" fill="#F2ECD8"/>
+  <circle cx="13" cy="22" r=".7" fill="#2C2416" opacity=".13"/>
+  <circle cx="67" cy="44" r=".6" fill="#2C2416" opacity=".11"/>
+  <circle cx="89" cy="78" r=".7" fill="#2C2416" opacity=".10"/>
+  <circle cx="34" cy="91" r=".6" fill="#2C2416" opacity=".13"/>
+  <circle cx="115" cy="22" r=".6" fill="#2C2416" opacity=".10"/>
+  <circle cx="143" cy="60" r=".7" fill="#2C2416" opacity=".12"/>
+</pattern>
+<filter id="grain">
+  <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="12"/>
+  <feColorMatrix values="0 0 0 0 0.17 0 0 0 0 0.14 0 0 0 0 0.09 0 0 0 0.10 0"/>
+</filter>
+</defs></svg>
+
+<!-- ═══ EDITOR ═══ -->
+<div id="ed">
+  <h1>Comic Creator</h1>
+  <p class="sub">Dũng &amp; Hà Lan · v3</p>
+
+  <div class="sec">
+    <h3>Layout & Canvas</h3>
+    <div class="f"><label>Bố cục panel</label>
+      <div class="pills" id="lp">
+        <div class="pill on" onclick="setLayout('2x2',this)">2×2</div>
+        <div class="pill" onclick="setLayout('1x4',this)">1×4</div>
+        <div class="pill" onclick="setLayout('1x3',this)">1×3</div>
+        <div class="pill" onclick="setLayout('1x2',this)">1×2</div>
+        <div class="pill" onclick="setLayout('1x1',this)">1×1</div>
+      </div>
+    </div>
+    <div class="f"><label>Kích thước xuất</label>
+      <div class="pills" id="sp">
+        <div class="pill b on" onclick="setSize('portrait',this)">9:16</div>
+        <div class="pill b" onclick="setSize('square',this)">1:1</div>
+        <div class="pill b" onclick="setSize('story',this)">4:5</div>
+        <div class="pill b" onclick="setSize('wide',this)">16:9</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h3>Style</h3>
+    <div class="f"><label>Màu nền panel</label>
+      <div class="sws" id="bg-sw">
+        <div class="sw on" style="background:#E08160" onclick="setBg('#E08160',this)"></div>
+        <div class="sw" style="background:#C85C3E" onclick="setBg('#C85C3E',this)"></div>
+        <div class="sw" style="background:#7A9A78" onclick="setBg('#7A9A78',this)"></div>
+        <div class="sw" style="background:#5B7FA6" onclick="setBg('#5B7FA6',this)"></div>
+        <div class="sw" style="background:#8B6BA8" onclick="setBg('#8B6BA8',this)"></div>
+        <div class="sw" style="background:#D4A843" onclick="setBg('#D4A843',this)"></div>
+        <div class="sw" style="background:#3D4A5C" onclick="setBg('#3D4A5C',this)"></div>
+        <div class="sw" style="background:#A05060" onclick="setBg('#A05060',this)"></div>
+        <div class="sw-c">
+          <div class="sw" id="sw-cust" style="background:#fff;border-style:dashed;border-color:#444"></div>
+          <input type="color" value="#E08160" oninput="setBgCustom(this.value)">
+        </div>
+      </div>
+    </div>
+    <div class="f"><label>Font bubble</label>
+      <select onchange="S.font=this.value;render()">
+        <option value="patrick">Patrick Hand</option>
+        <option value="pangolin">Pangolin</option>
+        <option value="bangers">Bangers</option>
+        <option value="caveat">Caveat</option>
+        <option value="bevn">Be Vietnam Pro</option>
+      </select>
+    </div>
+    <div class="f"><label>Cỡ chữ: <span id="fsl">40</span>px</label>
+      <input type="range" min="20" max="70" value="40" style="padding:0;background:0;border:0;width:100%"
+        oninput="S.fontSize=+this.value;document.getElementById('fsl').textContent=this.value;render()">
+    </div>
+    <div class="f"><label>Hình dạng bubble</label>
+      <div class="pills" id="bshape-pills">
+        <div class="pill on" onclick="setBShape('oval',this)" title="Oval tròn — kiểu Gia Đình Ngộ">⬭ Oval</div>
+        <div class="pill" onclick="setBShape('rect',this)" title="Chữ nhật bo góc — kiểu Dreamers">▭ Rect</div>
+        <div class="pill" onclick="setBShape('cloud',this)" title="Đám mây — suy nghĩ nội tâm">☁ Cloud</div>
+        <div class="pill" onclick="setBShape('shout',this)" title="Hét lên — spike bubble">⚡ Shout</div>
+      </div>
+    </div>
+    <div class="f"><label>Cỡ bubble: <span id="bszl">100</span>%</label>
+      <input type="range" min="60" max="160" value="100" style="padding:0;background:0;border:0;width:100%"
+        oninput="S.bubbleScale=+this.value/100;document.getElementById('bszl').textContent=this.value;render()">
+    </div>
+  </div>
+
+  <div class="sec">
+    <h3>Header / Footer</h3>
+    <div class="r2">
+      <div class="f"><label>Tiêu đề</label><input value="DŨNG & HÀ LAN" oninput="S.title=this.value;render()"></div>
+      <div class="f"><label>Tập</label><input value="TẬP 02" oninput="S.ep=this.value;render()"></div>
+    </div>
+    <div class="f"><label>Brand</label><input value="DREAMERS" oninput="S.brand=this.value;render()"></div>
+  </div>
+
+  <div id="pw"></div>
+
+  <div class="brow">
+    <button class="btn btn-p" id="btn-exp">⬇ Export PNG</button>
+    <button class="btn btn-s" onclick="resetPanels()">↺ Reset</button>
+  </div>
+  <p id="hint" style="font-size:9px;color:#444;margin-top:3px;font-style:italic"></p>
+  <div style="height:20px"></div>
+</div>
+
+<!-- ═══ PREVIEW ═══ -->
+<div id="pv"><div id="cw"></div></div>
+
+<script>
+// ══ FONT MAP ══
+const FM={patrick:"'Patrick Hand',cursive",bangers:"'Bangers',cursive",pangolin:"'Pangolin',cursive",caveat:"'Caveat',cursive",bevn:"'Be Vietnam Pro',sans-serif"};
+const SZ={portrait:{W:1080,H:1920},square:{W:1080,H:1080},story:{W:1080,H:1350},wide:{W:1920,H:1080}};
+const GAP=20,HDR=60,FTR=50;
+
+// ══ STATE ══
+const S={
+  layout:'2x2',size:'portrait',bgColor:'#E08160',
+  font:'patrick',fontSize:40,
+  bubbleShape:'oval',  // oval | rect | cloud | shout
+  bubbleScale:1.0,
+  title:'DŨNG & HÀ LAN',ep:'TẬP 02',brand:'DREAMERS',
+  panels:[
+    {char1:'dung-sweat',char2:'none',bg:'bg-cafe',
+     b1:{text:'ANH MUỐN NÓI\nVỚI CÔ MỘT\nCHUYỆN…',pos:'top-left'},
+     b2:{text:'',pos:'top-right'},caption:''},
+    {char1:'halan-smirk',char2:'none',bg:'bg-street',
+     b1:{text:'ĐỪNG!',pos:'top-right'},
+     b2:{text:'',pos:'top-left'},caption:''},
+    {char1:'dung-confused',char2:'none',bg:'bg-cafe',
+     b1:{text:'ĐỪNG GÌ?',pos:'top-left'},
+     b2:{text:'',pos:'top-right'},
+     caption:'anh chỉ định hỏi cô biết quán phở nào ngon\nở Hai Bà Trưng không thôi mà…\n— cô nghĩ anh nói gì?'},
+    {char1:'halan-embarrassed',char2:'none',bg:'bg-room',
+     b1:{text:'…À.',pos:'top-right'},
+     b2:{text:'',pos:'top-left'},
+     caption:'tưởng cái khác.\nphở Lý Quốc Sư đi.\nđông nhưng đáng.\ncấm hỏi thêm.\n— không nhìn vào mắt anh —'},
+  ]
+};
+
+// ══ CONTROLS ══
+function setLayout(l,el){
+  S.layout=l;
+  document.querySelectorAll('#lp .pill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  const n=cnt();
+  while(S.panels.length<n) S.panels.push({char1:'dung-deadpan',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''});
+  buildEd();render();
+}
+function setSize(s,el){S.size=s;document.querySelectorAll('#sp .pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');render();}
+function setBg(c,el){S.bgColor=c;document.querySelectorAll('#bg-sw .sw').forEach(s=>s.classList.remove('on'));el.classList.add('on');render();}
+function setBgCustom(c){S.bgColor=c;const d=document.getElementById('sw-cust');d.style.background=c;document.querySelectorAll('#bg-sw .sw').forEach(s=>s.classList.remove('on'));d.classList.add('on');render();}
+function setBShape(s,el){S.bubbleShape=s;document.querySelectorAll('#bshape-pills .pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');render();}
+function cnt(){return{'2x2':4,'1x4':4,'1x3':3,'1x2':2,'1x1':1}[S.layout]||4;}
+function grd(){return{'2x2':{c:2,r:2},'1x4':{c:1,r:4},'1x3':{c:1,r:3},'1x2':{c:1,r:2},'1x1':{c:1,r:1}}[S.layout];}
+
+// ══ CHAR + BG OPTIONS ══
+const CHARS=[
+  ['none','— Không có —'],
+  ['dung-deadpan','Dũng · deadpan'],['dung-sweat','Dũng · căng/lo'],
+  ['dung-confused','Dũng · hỏi lại'],['dung-angry','Dũng · tức'],
+  ['dung-sigh','Dũng · thở dài'],
+  ['halan-reading','Hà Lan · bình thản'],['halan-smirk','Hà Lan · nhìn thẳng'],
+  ['halan-embarrassed','Hà Lan · đỏ mặt'],['halan-cold','Hà Lan · lạnh lùng'],
+  ['halan-happy','Hà Lan · vui'],
+];
+const BGS=[
+  ['bg-plain','— Trơn —'],['bg-cafe','Quán cà phê'],
+  ['bg-street','Phố / đường'],['bg-park','Công viên'],
+  ['bg-room','Phòng / nhà'],['bg-rooftop','Sân thượng'],
+];
+const BPOS=[
+  ['top-left','Trên trái'],['top-center','Trên giữa'],['top-right','Trên phải'],
+  ['bottom-left','Dưới trái'],['bottom-center','Dưới giữa'],['bottom-right','Dưới phải'],
+];
+
+function cOpts(sel){return CHARS.map(([v,l])=>`<option value="${v}"${sel===v?' selected':''}>${l}</option>`).join('');}
+function bgOpts(sel){return BGS.map(([v,l])=>`<option value="${v}"${sel===v?' selected':''}>${l}</option>`).join('');}
+function bpOpts(sel){return BPOS.map(([v,l])=>`<option value="${v}"${sel===v?' selected':''}>${l}</option>`).join('');}
+
+// ══ BUILD EDITORS ══
+function buildEd(){
+  const wrap=document.getElementById('pw');
+  wrap.innerHTML='';
+  for(let i=0;i<cnt();i++){
+    const p=S.panels[i];
+    const d=document.createElement('div');d.className='ped';
+    d.innerHTML=`<h4>Panel ${i+1}</h4>
+    <div class="r2">
+      <div class="f"><label>NV trái/giữa</label><select onchange="S.panels[${i}].char1=this.value;render()">${cOpts(p.char1)}</select></div>
+      <div class="f"><label>NV phải</label><select onchange="S.panels[${i}].char2=this.value;render()">${cOpts(p.char2)}</select></div>
+    </div>
+    <div class="f"><label>Background</label><select onchange="S.panels[${i}].bg=this.value;render()">${bgOpts(p.bg||'bg-plain')}</select></div>
+    <div class="f"><label>Bubble 1</label>
+      <div class="r2" style="margin-bottom:3px">
+        <div class="f"><label style="font-size:8px;color:#555">Vị trí</label><select onchange="S.panels[${i}].b1.pos=this.value;render()">${bpOpts(p.b1.pos)}</select></div>
+        <div class="f"><label style="font-size:8px;color:#555">Shape (override)</label>
+          <select onchange="S.panels[${i}].b1.shape=this.value;render()">
+            <option value="">— Global —</option>
+            <option value="oval"${(p.b1.shape==='oval')?' selected':''}>⬭ Oval</option>
+            <option value="rect"${(p.b1.shape==='rect')?' selected':''}>▭ Rect</option>
+            <option value="cloud"${(p.b1.shape==='cloud')?' selected':''}>☁ Cloud</option>
+            <option value="shout"${(p.b1.shape==='shout')?' selected':''}>⚡ Shout</option>
+          </select></div>
+      </div>
+      <textarea oninput="S.panels[${i}].b1.text=this.value;render()">${p.b1.text}</textarea>
+    </div>
+    <div class="f"><label>Bubble 2</label>
+      <div class="r2" style="margin-bottom:3px">
+        <div class="f"><label style="font-size:8px;color:#555">Vị trí</label><select onchange="S.panels[${i}].b2.pos=this.value;render()">${bpOpts(p.b2.pos)}</select></div>
+        <div class="f"><label style="font-size:8px;color:#555">Shape (override)</label>
+          <select onchange="S.panels[${i}].b2.shape=this.value;render()">
+            <option value="">— Global —</option>
+            <option value="oval"${(p.b2.shape==='oval')?' selected':''}>⬭ Oval</option>
+            <option value="rect"${(p.b2.shape==='rect')?' selected':''}>▭ Rect</option>
+            <option value="cloud"${(p.b2.shape==='cloud')?' selected':''}>☁ Cloud</option>
+            <option value="shout"${(p.b2.shape==='shout')?' selected':''}>⚡ Shout</option>
+          </select></div>
+      </div>
+      <textarea oninput="S.panels[${i}].b2.text=this.value;render()">${p.b2.text}</textarea>
+    </div>
+    <div class="f"><label>Caption / chú thích nhỏ</label>
+      <textarea oninput="S.panels[${i}].caption=this.value;render()">${p.caption}</textarea>
+    </div>`;
+    wrap.appendChild(d);
+  }
+}
+
+function resetPanels(){
+  S.panels=[
+    {char1:'dung-sweat',char2:'none',bg:'bg-cafe',b1:{text:'ANH MUỐN NÓI\nVỚI CÔ MỘT\nCHUYỆN…',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+    {char1:'halan-smirk',char2:'none',bg:'bg-street',b1:{text:'ĐỪNG!',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:''},
+    {char1:'dung-confused',char2:'none',bg:'bg-cafe',b1:{text:'ĐỪNG GÌ?',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'anh chỉ định hỏi cô biết quán phở nào ngon\nở Hai Bà Trưng không thôi mà…\n— cô nghĩ anh nói gì?'},
+    {char1:'halan-embarrassed',char2:'none',bg:'bg-room',b1:{text:'…À.',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:'tưởng cái khác.\nphở Lý Quốc Sư đi.\nđông nhưng đáng.\ncấm hỏi thêm.\n— không nhìn vào mắt anh —'},
+  ];
+  buildEd();render();
+}
+
+// ══ RENDER ══
+function render(){
+  const {W,H}=SZ[S.size];
+  const {c,r}=grd();
+  const n=cnt();
+  const font=FM[S.font];
+  const aW=W-GAP*(c+1), aH=H-HDR-FTR-GAP*(r+1);
+  const pW=Math.floor(aW/c), pH=Math.floor(aH/r);
+  let panels='';
+  for(let i=0;i<n;i++){
+    const col=i%c,row=Math.floor(i/c);
+    panels+=mkPanel(GAP+col*(pW+GAP), HDR+GAP+row*(pH+GAP), pW, pH, S.panels[i]||{}, font);
+  }
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" style="font-family:${font}">
+<defs>${getDefs()}<pattern id="pBg" x="0" y="0" width="160" height="160" patternUnits="userSpaceOnUse">
+<rect width="160" height="160" fill="#F2ECD8"/>
+<circle cx="13" cy="22" r=".7" fill="#2C2416" opacity=".13"/>
+<circle cx="67" cy="44" r=".6" fill="#2C2416" opacity=".11"/>
+<circle cx="89" cy="78" r=".7" fill="#2C2416" opacity=".10"/>
+<circle cx="34" cy="91" r=".6" fill="#2C2416" opacity=".13"/>
+</pattern>
+<filter id="gr"><feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="12"/>
+<feColorMatrix values="0 0 0 0 0.17 0 0 0 0 0.14 0 0 0 0 0.09 0 0 0 0.10 0"/></filter>
+</defs>
+<rect width="${W}" height="${H}" fill="url(#pBg)"/>
+${mkHdr(W,H,font)}
+${panels}
+${mkFtr(W,H,font)}
+<rect width="${W}" height="${H}" filter="url(#gr)" opacity="0.18" pointer-events="none"/>
+</svg>`;
+  const cw=document.getElementById('cw');
+  cw.innerHTML=svg;
+  const el=cw.querySelector('svg');
+  const maxW=document.getElementById('pv').clientWidth-24;
+  const maxH=document.getElementById('pv').clientHeight-24;
+  const sc=Math.min(maxW/W,maxH/H,1);
+  el.style.width=W*sc+'px';el.style.height=H*sc+'px';
+}
+
+function mkHdr(W,H,f){
+  return `<rect x="0" y="0" width="${W}" height="${HDR}" fill="#2C2416" opacity="0.88"/>
+<text x="18" y="${HDR*.65}" font-family="${f}" font-size="20" font-weight="700" fill="#F2ECD8" opacity=".9" letter-spacing="1">${esc(S.title.toUpperCase())}</text>
+<text x="${W-18}" y="${HDR*.65}" font-family="${f}" font-size="15" fill="#F2ECD8" opacity=".55" text-anchor="end">${esc(S.ep.toUpperCase())}</text>`;
+}
+function mkFtr(W,H,f){
+  const y=H-FTR;
+  return `<rect x="0" y="${y}" width="${W}" height="${FTR}" fill="#2C2416" opacity="0.88"/>
+<text x="${W-18}" y="${y+FTR*.66}" font-family="${f}" font-size="16" font-weight="700" fill="#F2ECD8" opacity=".65" text-anchor="end" letter-spacing="2">◉ ${esc(S.brand.toUpperCase())}</text>`;
+}
+
+// ══ PANEL ══
+function mkPanel(px,py,pW,pH,panel,font){
+  const bg=S.bgColor;
+  // caption height
+  const capLines=panel.caption&&panel.caption.trim() ? wrapL(panel.caption,pW-48,S.fontSize*.7) : [];
+  const capH=capLines.length ? capLines.length*Math.round(S.fontSize*.78)+18 : 0;
+  const charZoneH=pH-capH;
+
+  // ── background scene (clipped to panel) ──
+  const clipId=`clip-${px}-${py}`.replace(/\./g,'_');
+  const bgId=panel.bg&&panel.bg!=='bg-plain'?panel.bg:null;
+  let bgSVG='';
+  if(bgId){
+    bgSVG=`<defs><clipPath id="${clipId}"><rect x="${px}" y="${py}" width="${pW}" height="${pH}" rx="2"/></clipPath></defs>
+<use href="#${bgId}" x="${px}" y="${py}" width="${pW}" height="${charZoneH}" clip-path="url(#${clipId})"/>`;
+  }
+
+  // ── characters ──
+  const has2=panel.char1&&panel.char1!=='none'&&panel.char2&&panel.char2!=='none';
+  let charSVG='';
+  if(panel.char1&&panel.char1!=='none'){
+    const cx=has2 ? px+pW*.3 : px+pW*.5;
+    charSVG+=placeChar(panel.char1,cx,py,pW,charZoneH,has2?'left':'center');
+  }
+  if(panel.char2&&panel.char2!=='none'){
+    charSVG+=placeChar(panel.char2,px+pW*.72,py,pW,charZoneH,'right');
+  }
+
+  // ── bubbles with flexible positioning ──
+  let bubSVG='';
+  if(panel.b1&&panel.b1.text&&panel.b1.text.trim())
+    bubSVG+=mkBubble(panel.b1.text,panel.b1.pos||'top-left',px,py,pW,charZoneH,font,panel.b1.shape||'');
+  if(panel.b2&&panel.b2.text&&panel.b2.text.trim())
+    bubSVG+=mkBubble(panel.b2.text,panel.b2.pos||'top-right',px,py,pW,charZoneH,font,panel.b2.shape||'');
+
+  // ── caption strip ──
+  let capSVG='';
+  if(capLines.length){
+    const cy=py+pH-capH;
+    const lh=Math.round(S.fontSize*.78);
+    capSVG=`<rect x="${px}" y="${cy}" width="${pW}" height="${capH}" fill="#F2ECD8" opacity=".9"/>
+<line x1="${px}" y1="${cy}" x2="${px+pW}" y2="${cy}" stroke="#2C2416" stroke-width="1" opacity=".12"/>`;
+    capLines.forEach((line,i)=>{
+      const note=line.trim().startsWith('—')||line.trim().startsWith('-');
+      const fs=note?Math.round(S.fontSize*.6):Math.round(S.fontSize*.68);
+      capSVG+=`<text x="${px+pW/2}" y="${cy+10+i*lh+fs}" font-family="${font}" font-size="${fs}"
+font-style="${note?'italic':'normal'}" fill="${note?'#C66A4A':'#2C2416'}" text-anchor="middle">${esc(line)}</text>`;
+    });
+  }
+
+  return `<g>
+<rect x="${px}" y="${py}" width="${pW}" height="${pH}" fill="${bg}" rx="2"/>
+${bgSVG}
+${charSVG}
+${bubSVG}
+${capSVG}
+<rect x="${px}" y="${py}" width="${pW}" height="${pH}" fill="none" stroke="#2C2416" stroke-width="4" rx="2"/>
+</g>`;
+}
+
+// ══ CHAR PLACEMENT ══
+// Symbol viewBox "-60 -80 120 160" → natural 120w × 160h
+// We size the character to fill ~75% of charZoneH and anchor feet at ~90% of zone
+function placeChar(id,cx,panelY,pW,charZoneH,align){
+  const dW=120,dH=160;
+  // scale to fit height & width
+  const maxH=charZoneH*0.78;
+  const maxW=pW*(align==='center'?0.55:0.44);
+  const sc=Math.min(maxH/dH, maxW/dW);
+  const cw=dW*sc, ch=dH*sc;
+  // anchor bottom of character at 90% of zone
+  const y=panelY+charZoneH*0.90-ch;
+  const x=cx-cw/2;
+  return `<use href="#${id}" x="${x}" y="${y}" width="${cw}" height="${ch}"/>`;
+}
+
+// ══ BUBBLE ENGINE ══
+// Supports: oval (ellipse) · rect (rounded rect) · cloud · shout (spike)
+// pos: top-left / top-center / top-right / bottom-left / bottom-center / bottom-right
+function mkBubble(text,pos,px,py,pW,charZoneH,font,shapeOverride){
+  const fSz = S.fontSize;
+  const sc  = S.bubbleScale || 1;
+  const shape = shapeOverride || S.bubbleShape || 'oval';
+  const margin = 18;
+
+  // ── text layout ──
+  const maxBW = Math.min(pW * 0.60, pW - margin * 2) * sc;
+  const padX  = shape==='oval' ? fSz*0.9  : 14;
+  const padY  = shape==='oval' ? fSz*0.55 : 10;
+  const lines = wrapL(text, maxBW - padX*2, fSz);
+  const lh    = fSz * 1.28;
+  const lineMaxW = lines.reduce((m,l)=>Math.max(m, l.length*fSz*0.52), 0);
+
+  // ── bubble dimensions ──
+  let bw = Math.min(maxBW, lineMaxW + padX*2 + 6);
+  let bh = lines.length * lh + padY*2;
+
+  // oval: make it rounder — increase padding so width ≥ height ratio ~1.6:1
+  if(shape==='oval'){
+    bw = Math.max(bw, bh * 1.3);
+    bh = Math.max(bh, bw * 0.55);
+  }
+  // cloud: square-ish
+  if(shape==='cloud'){
+    bw = Math.max(bw, bh * 1.2);
+    bh = Math.max(bh, bw * 0.7);
+  }
+  // shout: add spike margin
+  if(shape==='shout'){
+    bw += 20; bh += 14;
+  }
+
+  const tailH = shape==='cloud' ? 0 : Math.round(16 * sc);
+
+  // ── position ──
+  const isTop  = pos.startsWith('top');
+  const hPart  = pos.split('-')[1];
+  let bx, by;
+  if(hPart==='left')        bx = px + margin;
+  else if(hPart==='right')  bx = px + pW - margin - bw;
+  else                      bx = px + pW/2 - bw/2;
+
+  const bottomRoom = bh + tailH + margin + 4;
+  if(isTop) by = py + margin;
+  else      by = py + charZoneH - bottomRoom;
+
+  // clamp within panel
+  bx = Math.max(px+3, Math.min(bx, px+pW-bw-3));
+  by = Math.max(py+3, Math.min(by, py+charZoneH-bh-tailH-3));
+
+  const cx = bx + bw/2;       // bubble horizontal center
+  const cy = by + bh/2;       // bubble vertical center
+  const sw = 2.8;              // stroke width
+
+  // ── text rows ──
+  const textY0 = by + padY + fSz * 0.92;
+  const textRows = lines.map((l,i)=>
+    `<text x="${cx}" y="${textY0+i*lh}" font-family="${font}" font-size="${fSz}"
+font-weight="700" fill="#2C2416" text-anchor="middle" dominant-baseline="auto">${esc(l)}</text>`
+  ).join('');
+
+  // ── shape SVG ──
+  let shapeSVG = '';
+
+  if(shape==='oval'){
+    // pure ellipse body — Gia Đình Ngộ style
+    const rx = bw/2, ry = bh/2;
+    // tail: curved bezier spike from ellipse edge
+    const tailAnchorX = cx + (hPart==='right'? rx*0.3 : hPart==='left'? -rx*0.3 : 0);
+    let tailSVG = '';
+    if(isTop){
+      const ay = by + bh;                   // bottom of ellipse
+      const tipX = tailAnchorX + (hPart==='right'? 8 : hPart==='left'? -8 : 0);
+      const tipY = ay + tailH;
+      // curved tail — one side straight, one concave (classic Korean/VN webtoon style)
+      tailSVG=`<path d="M ${tailAnchorX-6} ${ay-4}
+  Q ${tailAnchorX-2} ${ay+tailH*0.6} ${tipX} ${tipY}
+  Q ${tailAnchorX+8} ${ay+tailH*0.5} ${tailAnchorX+8} ${ay-4} Z"
+  fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
+    } else {
+      const ay = by;
+      const tipX = tailAnchorX + (hPart==='right'? 8 : hPart==='left'? -8 : 0);
+      const tipY = ay - tailH;
+      tailSVG=`<path d="M ${tailAnchorX-6} ${ay+4}
+  Q ${tailAnchorX-2} ${ay-tailH*0.6} ${tipX} ${tipY}
+  Q ${tailAnchorX+8} ${ay-tailH*0.5} ${tailAnchorX+8} ${ay+4} Z"
+  fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
+    }
+    shapeSVG=`${tailSVG}
+<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"
+  fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}"/>`;
+  }
+
+  else if(shape==='rect'){
+    // rounded rectangle (original style, improved)
+    const r = Math.min(14, bh*0.35);
+    const tailCX = Math.min(Math.max(cx, bx+r+8), bx+bw-r-8);
+    let tailSVG='';
+    if(isTop){
+      const ty=by+bh;
+      tailSVG=`<path d="M ${tailCX-8} ${ty} Q ${tailCX} ${ty+tailH*0.6} ${tailCX} ${ty+tailH} Q ${tailCX} ${ty+tailH*0.6} ${tailCX+8} ${ty} Z"
+fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
+    } else {
+      const ty=by;
+      tailSVG=`<path d="M ${tailCX-8} ${ty} Q ${tailCX} ${ty-tailH*0.6} ${tailCX} ${ty-tailH} Q ${tailCX} ${ty-tailH*0.6} ${tailCX+8} ${ty} Z"
+fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
+    }
+    const bp=`M ${bx+r} ${by} L ${bx+bw-r} ${by} Q ${bx+bw} ${by} ${bx+bw} ${by+r}
+L ${bx+bw} ${by+bh-r} Q ${bx+bw} ${by+bh} ${bx+bw-r} ${by+bh}
+L ${bx+r} ${by+bh} Q ${bx} ${by+bh} ${bx} ${by+bh-r}
+L ${bx} ${by+r} Q ${bx} ${by} ${bx+r} ${by} Z`;
+    shapeSVG=`${tailSVG}
+<path d="${bp}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
+  }
+
+  else if(shape==='cloud'){
+    // cloud bubble — series of overlapping circles on perimeter + small thought dots
+    const rx=bw/2, ry=bh/2;
+    const bumps=Math.max(5, Math.round(bw/38));
+    const br=bh*0.22; // bump radius
+    let cloudPath=`<ellipse cx="${cx}" cy="${cy}" rx="${rx*0.94}" ry="${ry*0.88}" fill="#FBF8E8" stroke="none"/>`;
+    // top bumps
+    for(let b=0;b<bumps;b++){
+      const bx2=bx+br+(b/(bumps-1))*(bw-br*2);
+      cloudPath+=`<circle cx="${bx2}" cy="${by+br*0.4}" r="${br}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw*0.9}"/>`;
+    }
+    // bottom bumps
+    for(let b=0;b<bumps;b++){
+      const bx2=bx+br+(b/(bumps-1))*(bw-br*2);
+      cloudPath+=`<circle cx="${bx2}" cy="${by+bh-br*0.4}" r="${br}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw*0.9}"/>`;
+    }
+    // left/right small bumps
+    cloudPath+=`<circle cx="${bx+br*0.4}" cy="${cy}" r="${br*0.85}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw*0.9}"/>`;
+    cloudPath+=`<circle cx="${bx+bw-br*0.4}" cy="${cy}" r="${br*0.85}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw*0.9}"/>`;
+    // white interior fill over strokes
+    cloudPath+=`<ellipse cx="${cx}" cy="${cy}" rx="${rx*0.88}" ry="${ry*0.82}" fill="#FBF8E8" stroke="none"/>`;
+    // thought dots tail
+    const dotDir = isTop ? 1 : -1;
+    const dotStartX = hPart==='right' ? cx+rx*0.3 : hPart==='left' ? cx-rx*0.3 : cx;
+    const dotStartY = isTop ? by+bh+br*0.4 : by-br*0.4;
+    cloudPath+=`<circle cx="${dotStartX}" cy="${dotStartY+dotDir*8}" r="${br*0.55}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw*0.85}"/>`;
+    cloudPath+=`<circle cx="${dotStartX+(hPart==='right'?4:hPart==='left'?-4:0)}" cy="${dotStartY+dotDir*18}" r="${br*0.38}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw*0.8}"/>`;
+    cloudPath+=`<circle cx="${dotStartX+(hPart==='right'?7:hPart==='left'?-7:0)}" cy="${dotStartY+dotDir*26}" r="${br*0.25}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw*0.75}"/>`;
+    shapeSVG=cloudPath;
+  }
+
+  else if(shape==='shout'){
+    // spiky shout bubble — jagged border
+    const rx=bw/2, ry=bh/2;
+    const spikes=10;
+    const outerR=Math.max(rx,ry)+10;
+    const innerRx=rx, innerRy=ry;
+    let pts='';
+    for(let i=0;i<spikes*2;i++){
+      const angle=(i/spikes)*Math.PI - Math.PI/2;
+      const r2 = i%2===0 ? outerR : Math.sqrt(innerRx*innerRx*Math.cos(angle)*Math.cos(angle)+innerRy*innerRy*Math.sin(angle)*Math.sin(angle));
+      pts+=`${cx+Math.cos(angle)*r2},${cy+Math.sin(angle)*r2} `;
+    }
+    // tail
+    const tailCX2=cx+(hPart==='right'?rx*0.4:hPart==='left'?-rx*0.4:0);
+    let tailSVG2='';
+    if(isTop){
+      const ty=cy+ry;
+      tailSVG2=`<polygon points="${tailCX2-9},${ty} ${tailCX2},${ty+tailH+6} ${tailCX2+9},${ty}"
+fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
+    } else {
+      const ty=cy-ry;
+      tailSVG2=`<polygon points="${tailCX2-9},${ty} ${tailCX2},${ty-tailH-6} ${tailCX2+9},${ty}"
+fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
+    }
+    shapeSVG=`${tailSVG2}
+<polygon points="${pts.trim()}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
+  }
+
+  return `<g>${shapeSVG}${textRows}</g>`;
+}
+
+// ══ UTILS ══
+function wrapL(text,maxW,fSz){
+  const avgW=fSz*0.52;
+  const maxC=Math.max(4,Math.floor(maxW/avgW));
+  const out=[];
+  for(const para of text.split('\n')){
+    if(!para.trim()){continue;}
+    const words=para.split(' ');let line='';
+    for(const w of words){const t=line?line+' '+w:w;if(t.length>maxC&&line){out.push(line);line=w;}else line=t;}
+    if(line)out.push(line);
+  }
+  return out;
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function getDefs(){const s=document.querySelector('svg[aria-hidden="true"] defs');return s?s.innerHTML:'';}
+
+// ══ EXPORT ══
+document.getElementById('btn-exp').addEventListener('click',async()=>{
+  const btn=document.getElementById('btn-exp'),hint=document.getElementById('hint');
+  btn.disabled=true;btn.textContent='Đang render…';hint.textContent='Nhúng font…';
+  try{
+    await document.fonts.ready;
+    const svgEl=document.querySelector('#cw svg');
+    let fontCSS='';
+    try{
+      const fams={patrick:'Patrick+Hand',bangers:'Bangers',pangolin:'Pangolin',caveat:'Caveat:wght@400;700',bevn:'Be+Vietnam+Pro:wght@400;500;700'};
+      const resp=await fetch(`https://fonts.googleapis.com/css2?family=${fams[S.font]}&display=swap`,{headers:{'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'}});
+      let css=await resp.text();
+      const urls=[...new Set([...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g)].map(m=>m[1]))];
+      const uris={};
+      await Promise.all(urls.map(async u=>{const r=await fetch(u);const b=await r.blob();const rd=new FileReader();uris[u]=await new Promise((res,rej)=>{rd.onload=()=>res(rd.result);rd.onerror=rej;rd.readAsDataURL(b);});}));
+      urls.forEach(u=>{css=css.split(u).join(uris[u]);});fontCSS=css;
+    }catch(e){console.warn(e);}
+    hint.textContent='Xuất ảnh…';
+    const {W}=SZ[S.size];
+    const sc=W/svgEl.clientWidth;
+    const url=await htmlToImage.toPng(svgEl,{cacheBust:true,pixelRatio:sc,backgroundColor:'#F2ECD8',fontEmbedCSS:fontCSS,style:{borderRadius:'0',boxShadow:'none'}});
+    const a=document.createElement('a');
+    a.href=url;a.download=`${S.title.toLowerCase().replace(/[^a-z0-9]/g,'-')}-${S.ep.toLowerCase().replace(/[^a-z0-9]/g,'-')}-${S.size}.png`;
+    document.body.appendChild(a);a.click();a.remove();
+    btn.textContent='✓ Đã tải';hint.textContent=`${SZ[S.size].W}×${SZ[S.size].H}`;
+    setTimeout(()=>{btn.textContent='⬇ Export PNG';btn.disabled=false;},2200);
+  }catch(e){btn.textContent='⚠ Lỗi';hint.textContent=e.message;setTimeout(()=>{btn.textContent='⬇ Export PNG';btn.disabled=false;},2500);}
+});
+
+// ══ INIT ══
+buildEd();render();
+window.addEventListener('resize',render);
+</script>
+</body>
+</html>
