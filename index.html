@@ -47,8 +47,56 @@ body{font-family:'Segoe UI',sans-serif;background:#111;color:#ddd;display:flex;h
 [title]{position:relative}
 [title]:hover::after{content:attr(title);position:fixed;background:#1a1a1a;color:#ddd;font-size:10px;padding:4px 8px;border-radius:4px;border:1px solid #333;white-space:nowrap;z-index:999;pointer-events:none;transform:translateX(-50%);margin-top:22px;left:50%}
 
-/* shape preview pills — show mini bubble icon */
+/* shape preview pills */
 .pill.shape-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:4px 9px}
+
+/* ── TOOLBAR (undo/redo/save status) ── */
+#toolbar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#141414;border-bottom:1px solid #222;flex-shrink:0}
+#toolbar button{background:#1e1e1e;border:1px solid #2a2a2a;color:#888;border-radius:4px;padding:4px 8px;font-size:10px;cursor:pointer;transition:all .1s;font-family:inherit}
+#toolbar button:hover:not(:disabled){background:#2a2a2a;color:#ccc}
+#toolbar button:disabled{opacity:.3;cursor:default}
+#toolbar button.danger{color:#C85C3E}
+#save-status{font-size:9px;color:#444;margin-left:auto;font-style:italic}
+#save-status.saving{color:#7A9A78}
+#save-status.offline{color:#D4A843}
+
+/* ── TEMPLATE MODAL ── */
+#tpl-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:1000;align-items:center;justify-content:center}
+#tpl-modal.open{display:flex}
+#tpl-box{background:#1a1a1a;border:1px solid #2e2e2e;border-radius:10px;width:min(780px,95vw);max-height:88vh;overflow:hidden;display:flex;flex-direction:column}
+#tpl-box header{padding:14px 18px;border-bottom:1px solid #222;display:flex;align-items:center;gap:10px}
+#tpl-box header h2{font-size:13px;font-weight:700;color:#fff;flex:1}
+#tpl-box header button{background:#222;border:1px solid #333;color:#888;border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer}
+#tpl-cats{display:flex;gap:5px;padding:10px 18px;border-bottom:1px solid #1e1e1e;flex-wrap:wrap}
+#tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;padding:14px 18px;overflow-y:auto;flex:1}
+.tpl-card{background:#222;border:1px solid #2a2a2a;border-radius:6px;padding:10px;cursor:pointer;transition:all .12s;position:relative}
+.tpl-card:hover{border-color:#C85C3E;background:#1e1008}
+.tpl-card .tpl-thumb{width:100%;aspect-ratio:1/1.2;background:#2a2a2a;border-radius:4px;margin-bottom:7px;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden}
+.tpl-card .tpl-name{font-size:10px;font-weight:700;color:#ccc}
+.tpl-card .tpl-desc{font-size:9px;color:#555;margin-top:2px;line-height:1.3}
+.tpl-card .tpl-tag{position:absolute;top:6px;right:6px;font-size:8px;padding:2px 5px;border-radius:999px;background:#C85C3E;color:#fff}
+
+/* ── PANEL DRAG-AND-DROP ── */
+.ped.dragging{opacity:.4;border-style:dashed}
+.ped.drag-over{border-color:#C85C3E;background:#1e1008}
+.drag-handle{cursor:grab;color:#333;font-size:13px;margin-right:4px;user-select:none}
+.drag-handle:active{cursor:grabbing}
+
+/* ── PANEL CONTEXT MENU ── */
+#ctx-menu{display:none;position:fixed;background:#1a1a1a;border:1px solid #2e2e2e;border-radius:6px;padding:4px;z-index:500;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+#ctx-menu.open{display:block}
+#ctx-menu button{display:flex;align-items:center;gap:7px;width:100%;background:none;border:none;color:#bbb;padding:6px 10px;font-size:10px;cursor:pointer;border-radius:4px;text-align:left;font-family:inherit}
+#ctx-menu button:hover{background:#2a2a2a;color:#fff}
+#ctx-menu .ctx-sep{height:1px;background:#222;margin:3px 0}
+
+/* ── LAYOUT VISUAL PICKER ── */
+#layout-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:5px}
+.lp-btn{background:#111;border:1px solid #2e2e2e;border-radius:5px;padding:6px 4px;cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;gap:3px}
+.lp-btn:hover{border-color:#555}
+.lp-btn.on{border-color:#C85C3E;background:#1e1008}
+.lp-btn svg{width:36px;height:36px}
+.lp-btn span{font-size:8px;color:#555}
+.lp-btn.on span{color:#C85C3E}
 </style>
 </head>
 <body>
@@ -528,20 +576,78 @@ body{font-family:'Segoe UI',sans-serif;background:#111;color:#ddd;display:flex;h
 </filter>
 </defs></svg>
 
+<!-- ═══ TEMPLATE MODAL (US-50) ═══ -->
+<div id="tpl-modal">
+  <div id="tpl-box">
+    <header>
+      <h2>📚 Template Library</h2>
+      <div id="tpl-cats"></div>
+      <button onclick="closeTpl()">✕ Đóng</button>
+    </header>
+    <div id="tpl-grid"></div>
+  </div>
+</div>
+
+<!-- ═══ CONTEXT MENU (US-13) ═══ -->
+<div id="ctx-menu">
+  <button onclick="ctxDuplicate()">⧉ Duplicate panel</button>
+  <button onclick="ctxMoveLeft()">← Di chuyển trái</button>
+  <button onclick="ctxMoveRight()">→ Di chuyển phải</button>
+  <div class="ctx-sep"></div>
+  <button onclick="ctxClear()" style="color:#C85C3E">🗑 Xóa nội dung</button>
+</div>
+
+<!-- ═══ MAIN LAYOUT ═══ -->
+<div style="display:flex;flex-direction:column;width:310px;min-width:310px;height:100vh">
+<!-- ── TOOLBAR (US-45 + US-47) ── -->
+<div id="toolbar">
+  <button id="btn-undo" onclick="undo()" disabled title="Undo (Cmd+Z)">↩ Undo</button>
+  <button id="btn-redo" onclick="redo()" disabled title="Redo (Cmd+Shift+Z)">↪ Redo</button>
+  <button onclick="openTpl()" title="Template library">📚</button>
+  <span id="save-status">Chưa lưu</span>
+</div>
+
 <!-- ═══ EDITOR ═══ -->
-<div id="ed">
+<div id="ed" style="flex:1;height:0">
   <h1>Comic Creator</h1>
   <p class="sub">Dũng &amp; Hà Lan · v3</p>
 
   <div class="sec">
     <h3>Layout & Canvas</h3>
     <div class="f"><label>Bố cục panel</label>
-      <div class="pills" id="lp">
-        <div class="pill on" onclick="setLayout('2x2',this)">2×2</div>
-        <div class="pill" onclick="setLayout('1x4',this)">1×4</div>
-        <div class="pill" onclick="setLayout('1x3',this)">1×3</div>
-        <div class="pill" onclick="setLayout('1x2',this)">1×2</div>
-        <div class="pill" onclick="setLayout('1x1',this)">1×1</div>
+      <div id="layout-picker">
+        <div class="lp-btn on" onclick="setLayout('2x2',this)" title="2×2 Grid">
+          <svg viewBox="0 0 36 36"><rect x="1" y="1" width="15" height="15" rx="1" fill="#C85C3E" opacity=".7"/><rect x="20" y="1" width="15" height="15" rx="1" fill="#C85C3E" opacity=".7"/><rect x="1" y="20" width="15" height="15" rx="1" fill="#C85C3E" opacity=".7"/><rect x="20" y="20" width="15" height="15" rx="1" fill="#C85C3E" opacity=".7"/></svg>
+          <span>2×2</span>
+        </div>
+        <div class="lp-btn" onclick="setLayout('1x4',this)" title="1×4 Dọc">
+          <svg viewBox="0 0 36 36"><rect x="8" y="1" width="20" height="7" rx="1" fill="#555"/><rect x="8" y="10" width="20" height="7" rx="1" fill="#555"/><rect x="8" y="19" width="20" height="7" rx="1" fill="#555"/><rect x="8" y="28" width="20" height="7" rx="1" fill="#555"/></svg>
+          <span>1×4</span>
+        </div>
+        <div class="lp-btn" onclick="setLayout('1x3',this)" title="1×3 Dọc">
+          <svg viewBox="0 0 36 36"><rect x="5" y="2" width="26" height="9" rx="1" fill="#555"/><rect x="5" y="14" width="26" height="9" rx="1" fill="#555"/><rect x="5" y="26" width="26" height="9" rx="1" fill="#555"/></svg>
+          <span>1×3</span>
+        </div>
+        <div class="lp-btn" onclick="setLayout('1x2',this)" title="1×2 Dọc">
+          <svg viewBox="0 0 36 36"><rect x="3" y="3" width="30" height="13" rx="1" fill="#555"/><rect x="3" y="20" width="30" height="13" rx="1" fill="#555"/></svg>
+          <span>1×2</span>
+        </div>
+        <div class="lp-btn" onclick="setLayout('1x1',this)" title="1 Panel">
+          <svg viewBox="0 0 36 36"><rect x="3" y="3" width="30" height="30" rx="2" fill="#555"/></svg>
+          <span>1×1</span>
+        </div>
+        <div class="lp-btn" onclick="setLayout('2x1',this)" title="2 Ngang">
+          <svg viewBox="0 0 36 36"><rect x="1" y="5" width="15" height="26" rx="1" fill="#555"/><rect x="20" y="5" width="15" height="26" rx="1" fill="#555"/></svg>
+          <span>2×1</span>
+        </div>
+        <div class="lp-btn" onclick="setLayout('1+2',this)" title="1 Lớn + 2 Nhỏ">
+          <svg viewBox="0 0 36 36"><rect x="1" y="1" width="21" height="34" rx="1" fill="#555"/><rect x="24" y="1" width="11" height="16" rx="1" fill="#555"/><rect x="24" y="19" width="11" height="16" rx="1" fill="#555"/></svg>
+          <span>1+2</span>
+        </div>
+        <div class="lp-btn" onclick="setLayout('3x1',this)" title="3 Ngang">
+          <svg viewBox="0 0 36 36"><rect x="1" y="5" width="10" height="26" rx="1" fill="#555"/><rect x="13" y="5" width="10" height="26" rx="1" fill="#555"/><rect x="25" y="5" width="10" height="26" rx="1" fill="#555"/></svg>
+          <span>3×1</span>
+        </div>
       </div>
     </div>
     <div class="f"><label>Kích thước xuất</label>
@@ -617,6 +723,7 @@ body{font-family:'Segoe UI',sans-serif;background:#111;color:#ddd;display:flex;h
   <p id="hint" style="font-size:9px;color:#444;margin-top:3px;font-style:italic"></p>
   <div style="height:20px"></div>
 </div>
+</div><!-- end sidebar wrapper -->
 
 <!-- ═══ PREVIEW ═══ -->
 <div id="pv"><div id="cw"></div></div>
@@ -631,7 +738,7 @@ const GAP=20,HDR=60,FTR=50;
 const S={
   layout:'2x2',size:'portrait',bgColor:'#E08160',
   font:'patrick',fontSize:40,
-  bubbleShape:'oval',  // oval | rect | cloud | shout
+  bubbleShape:'oval',
   bubbleScale:1.0,
   title:'DŨNG & HÀ LAN',ep:'TẬP 02',brand:'DREAMERS',
   panels:[
@@ -652,21 +759,344 @@ const S={
   ]
 };
 
+// ══════════════════════════════════════════════════
+// US-45: UNDO / REDO  (50-step history)
+// ══════════════════════════════════════════════════
+const HIST={stack:[],ptr:-1,max:50};
+function snapshot(){
+  const snap=JSON.stringify(S);
+  // drop redo branch
+  HIST.stack=HIST.stack.slice(0,HIST.ptr+1);
+  HIST.stack.push(snap);
+  if(HIST.stack.length>HIST.max) HIST.stack.shift();
+  HIST.ptr=HIST.stack.length-1;
+  updateUndoUI();
+}
+function undo(){
+  if(HIST.ptr<=0) return;
+  HIST.ptr--;
+  applySnap(HIST.stack[HIST.ptr]);
+}
+function redo(){
+  if(HIST.ptr>=HIST.stack.length-1) return;
+  HIST.ptr++;
+  applySnap(HIST.stack[HIST.ptr]);
+}
+function applySnap(snap){
+  const data=JSON.parse(snap);
+  Object.assign(S,data);
+  // sync sliders/inputs
+  document.getElementById('fsl').textContent=S.fontSize;
+  document.querySelector('input[oninput*="fontSize"]').value=S.fontSize;
+  document.getElementById('bszl').textContent=Math.round((S.bubbleScale||1)*100);
+  document.querySelector('input[oninput*="bubbleScale"]').value=Math.round((S.bubbleScale||1)*100);
+  // sync layout buttons
+  document.querySelectorAll('#layout-picker .lp-btn').forEach(b=>{
+    b.classList.toggle('on', b.getAttribute('onclick')?.includes(`'${S.layout}'`));
+  });
+  buildEd(); render(); updateUndoUI();
+}
+function updateUndoUI(){
+  const bu=document.getElementById('btn-undo');
+  const br=document.getElementById('btn-redo');
+  if(bu) bu.disabled=HIST.ptr<=0;
+  if(br) br.disabled=HIST.ptr>=HIST.stack.length-1;
+}
+// intercept render to also snapshot — debounced so rapid typing doesn't flood
+let _snapTimer=null;
+function snap(){
+  clearTimeout(_snapTimer);
+  _snapTimer=setTimeout(snapshot,400);
+}
+
+// ══════════════════════════════════════════════════
+// US-47: AUTOSAVE + OFFLINE DRAFT
+// ══════════════════════════════════════════════════
+const SAVE_KEY='dreamers-comic-draft';
+let _saveTimer=null;
+function scheduleSave(){
+  const el=document.getElementById('save-status');
+  if(el){el.className='saving';el.textContent='Đang lưu…';}
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(()=>{
+    try{
+      localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+      localStorage.setItem(SAVE_KEY+'-ts', Date.now());
+      if(el){el.className='';el.textContent='Đã lưu '+new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});}
+    }catch(e){
+      if(el){el.className='offline';el.textContent='Lưu thất bại';}
+    }
+  },1500);
+}
+function loadDraft(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw) return false;
+    const data=JSON.parse(raw);
+    Object.assign(S,data);
+    const ts=localStorage.getItem(SAVE_KEY+'-ts');
+    const el=document.getElementById('save-status');
+    if(el&&ts) el.textContent='Draft '+new Date(+ts).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+    return true;
+  }catch(e){return false;}
+}
+
+// ══════════════════════════════════════════════════
+// US-13: PANEL DUPLICATE + CONTEXT MENU
+// ══════════════════════════════════════════════════
+let _ctxPanelIdx=-1;
+function showCtxMenu(e,i){
+  e.preventDefault(); e.stopPropagation();
+  _ctxPanelIdx=i;
+  const m=document.getElementById('ctx-menu');
+  m.style.left=Math.min(e.clientX, window.innerWidth-180)+'px';
+  m.style.top=Math.min(e.clientY, window.innerHeight-160)+'px';
+  m.classList.add('open');
+}
+function closeCtxMenu(){document.getElementById('ctx-menu').classList.remove('open');}
+function ctxDuplicate(){
+  if(_ctxPanelIdx<0) return;
+  const clone=JSON.parse(JSON.stringify(S.panels[_ctxPanelIdx]));
+  clone.b1={...clone.b1,text:''};
+  clone.b2={...clone.b2,text:''};
+  S.panels.splice(_ctxPanelIdx+1,0,clone);
+  // upgrade layout if needed
+  const layoutUpgrade={'1x1':'1x2','1x2':'1x3','1x3':'1x4','2x1':'2x2'};
+  if(S.panels.length>cnt() && layoutUpgrade[S.layout]){
+    setLayoutKey(layoutUpgrade[S.layout]);
+  }
+  buildEd();render();snap();scheduleSave();
+  closeCtxMenu();
+}
+function ctxMoveLeft(){
+  if(_ctxPanelIdx<=0) return;
+  [S.panels[_ctxPanelIdx-1],S.panels[_ctxPanelIdx]]=[S.panels[_ctxPanelIdx],S.panels[_ctxPanelIdx-1]];
+  buildEd();render();snap();scheduleSave();closeCtxMenu();
+}
+function ctxMoveRight(){
+  if(_ctxPanelIdx>=S.panels.length-1) return;
+  [S.panels[_ctxPanelIdx+1],S.panels[_ctxPanelIdx]]=[S.panels[_ctxPanelIdx],S.panels[_ctxPanelIdx+1]];
+  buildEd();render();snap();scheduleSave();closeCtxMenu();
+}
+function ctxClear(){
+  if(_ctxPanelIdx<0) return;
+  S.panels[_ctxPanelIdx].b1.text='';
+  S.panels[_ctxPanelIdx].b2.text='';
+  S.panels[_ctxPanelIdx].caption='';
+  buildEd();render();snap();scheduleSave();closeCtxMenu();
+}
+document.addEventListener('click',()=>closeCtxMenu());
+
+// ══════════════════════════════════════════════════
+// US-50: TEMPLATE LIBRARY  (20 templates)
+// ══════════════════════════════════════════════════
+const TEMPLATES=[
+  // ── ROMANTIC ──
+  {id:'rom-1',cat:'Lãng mạn',name:'Đừng nói',emoji:'💬',
+   desc:'Panel gốc Tập 02',
+   state:{layout:'2x2',bgColor:'#E08160',bubbleShape:'oval',
+    panels:[
+      {char1:'dung-sweat',char2:'none',bg:'bg-cafe',b1:{text:'ANH MUỐN NÓI\nVỚI CÔ MỘT\nCHUYỆN…',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+      {char1:'halan-smirk',char2:'none',bg:'bg-street',b1:{text:'ĐỪNG!',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:''},
+      {char1:'dung-confused',char2:'none',bg:'bg-cafe',b1:{text:'ĐỪNG GÌ?',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'anh chỉ định hỏi cô biết quán phở nào ngon…'},
+      {char1:'halan-embarrassed',char2:'none',bg:'bg-room',b1:{text:'…À.',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:'— không nhìn vào mắt anh —'},
+    ]}},
+  {id:'rom-2',cat:'Lãng mạn',name:'Tình cờ gặp',emoji:'🌸',
+   desc:'Gặp nhau ở công viên',
+   state:{layout:'1x3',bgColor:'#D4765A',bubbleShape:'oval',
+    panels:[
+      {char1:'dung-deadpan',char2:'none',bg:'bg-park',b1:{text:'Ủa… em cũng ở đây à?',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'— trời hôm nay đẹp thật —'},
+      {char1:'halan-smirk',char2:'none',bg:'bg-park',b1:{text:'Anh hay ra đây không?',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:''},
+      {char1:'dung-sweat',char2:'none',bg:'bg-park',b1:{text:'Thỉnh thoảng…',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'— từ hôm nay thôi —'},
+    ]}},
+  {id:'rom-3',cat:'Lãng mạn',name:'Sân thượng buổi tối',emoji:'🌙',
+   desc:'Cảnh lãng mạn trên sân thượng',
+   state:{layout:'2x2',bgColor:'#3D4A5C',bubbleShape:'oval',
+    panels:[
+      {char1:'halan-reading',char2:'none',bg:'bg-rooftop',b1:{text:'Sao anh hay lên đây thế?',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:''},
+      {char1:'dung-sigh',char2:'none',bg:'bg-rooftop',b1:{text:'Để suy nghĩ.',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'— và để gặp em —'},
+      {char1:'halan-cold',char2:'none',bg:'bg-rooftop',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'— im lặng —'},
+      {char1:'dung-sweat',char2:'none',bg:'bg-rooftop',b1:{text:'Em không lạnh à?',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+    ]}},
+
+  // ── HÀI HƯỚC ──
+  {id:'funny-1',cat:'Hài hước',name:'Hiểu lầm',emoji:'😅',
+   desc:'Tình huống hiểu lầm hài',
+   state:{layout:'2x2',bgColor:'#C85C3E',bubbleShape:'shout',
+    panels:[
+      {char1:'dung-confused',char2:'none',bg:'bg-cafe',b1:{text:'Em có thể cho anh SỐ không?',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+      {char1:'halan-embarrassed',char2:'none',bg:'bg-cafe',b1:{text:'CÁI GÌ???',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:''},
+      {char1:'dung-sweat',char2:'none',bg:'bg-cafe',b1:{text:'Số điện thoại… của tiệm phở đó',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'anh chỉ đói thôi'},
+      {char1:'halan-cold',char2:'none',bg:'bg-cafe',b1:{text:'…Tôi ghét anh.',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:'— vẫn đưa số —'},
+    ]}},
+  {id:'funny-2',cat:'Hài hước',name:'Deadpan drama',emoji:'🎭',
+   desc:'Dũng thờ ơ trong mọi tình huống',
+   state:{layout:'1x4',bgColor:'#7A9A78',bubbleShape:'rect',
+    panels:[
+      {char1:'dung-deadpan',char2:'none',bg:'bg-street',b1:{text:'Ừ.',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'khi nghe tin trúng xổ số'},
+      {char1:'dung-deadpan',char2:'none',bg:'bg-room',b1:{text:'Ừ.',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'khi Hà Lan nhắn "mình thích anh"'},
+      {char1:'dung-deadpan',char2:'none',bg:'bg-park',b1:{text:'Ừ.',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'khi trời sắp mưa to'},
+      {char1:'dung-sweat',char2:'none',bg:'bg-cafe',b1:{text:'Hết phở rồi…',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'TÁC ĐỘNG DUY NHẤT'},
+    ]}},
+  {id:'funny-3',cat:'Hài hước',name:'Bí kíp tán gái',emoji:'📖',
+   desc:'Lý thuyết vs thực tế',
+   state:{layout:'2x2',bgColor:'#D4A843',bubbleShape:'oval',
+    panels:[
+      {char1:'dung-deadpan',char2:'none',bg:'bg-room',b1:{text:'Lý thuyết: nói điều thú vị',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+      {char1:'halan-reading',char2:'none',bg:'bg-room',b1:{text:'Thực tế:',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:''},
+      {char1:'dung-sweat',char2:'none',bg:'bg-cafe',b1:{text:'Ừm… thời tiết hôm nay… đúng không?',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+      {char1:'halan-cold',char2:'none',bg:'bg-cafe',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'— cô im lặng một cách lịch sự —'},
+    ]}},
+
+  // ── SLICE OF LIFE ──
+  {id:'sol-1',cat:'Đời thường',name:'Sáng thứ Hai',emoji:'☕',
+   desc:'Cảnh sáng đi làm quen thuộc',
+   state:{layout:'1x3',bgColor:'#C8B898',bubbleShape:'oval',
+    panels:[
+      {char1:'dung-sigh',char2:'none',bg:'bg-room',b1:{text:'7 giờ sáng.',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'— chưa muốn dậy —'},
+      {char1:'dung-deadpan',char2:'none',bg:'bg-street',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'8 giờ trên đường'},
+      {char1:'halan-happy',char2:'none',bg:'bg-cafe',b1:{text:'Anh đến trễ rồi!',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:'— cô ấy đã order cho anh rồi —'},
+    ]}},
+  {id:'sol-2',cat:'Đời thường',name:'Quán phở',emoji:'🍜',
+   desc:'Cảnh ăn phở trưa',
+   state:{layout:'2x2',bgColor:'#A05060',bubbleShape:'oval',
+    panels:[
+      {char1:'dung-deadpan',char2:'none',bg:'bg-cafe',b1:{text:'Phở bò hay phở gà?',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+      {char1:'halan-smirk',char2:'none',bg:'bg-cafe',b1:{text:'Anh chọn đi.',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:''},
+      {char1:'dung-sweat',char2:'none',bg:'bg-cafe',b1:{text:'Hai tô phở bò ạ.',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'— đoán đúng —'},
+      {char1:'halan-reading',char2:'none',bg:'bg-cafe',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'— cô ấy không nói gì nhưng không đổi —'},
+    ]}},
+  {id:'sol-3',cat:'Đời thường',name:'Làm thêm giờ',emoji:'💼',
+   desc:'Đêm muộn ở công ty',
+   state:{layout:'1x3',bgColor:'#3D4A5C',bubbleShape:'cloud',
+    panels:[
+      {char1:'dung-sigh',char2:'none',bg:'bg-room',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'22:00 — vẫn còn ở công ty'},
+      {char1:'halan-reading',char2:'none',bg:'bg-room',b1:{text:'Anh chưa về à?',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:''},
+      {char1:'dung-deadpan',char2:'none',bg:'bg-room',b1:{text:'Em cũng chưa về.',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'— cả hai deadline như nhau —'},
+    ]}},
+
+  // ── DRAMA ──
+  {id:'drama-1',cat:'Drama',name:'Cuộc gọi nhỡ',emoji:'📱',
+   desc:'Sau khi bỏ lỡ 3 cuộc gọi',
+   state:{layout:'2x2',bgColor:'#5B7FA6',bubbleShape:'oval',
+    panels:[
+      {char1:'halan-cold',char2:'none',bg:'bg-room',b1:{text:'Anh gọi 3 lần.',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:''},
+      {char1:'dung-sweat',char2:'none',bg:'bg-street',b1:{text:'Anh bận…',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+      {char1:'halan-embarrassed',char2:'none',bg:'bg-room',b1:{text:'Không sao.',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:'— nhưng không ổn —'},
+      {char1:'dung-sigh',char2:'none',bg:'bg-rooftop',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'anh biết.'},
+    ]}},
+  {id:'drama-2',cat:'Drama',name:'Sau cãi nhau',emoji:'🌧️',
+   desc:'Im lặng sau xích mích',
+   state:{layout:'1x4',bgColor:'#8B6BA8',bubbleShape:'rect',
+    panels:[
+      {char1:'halan-cold',char2:'none',bg:'bg-street',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'ngày 1'},
+      {char1:'dung-sigh',char2:'none',bg:'bg-room',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'ngày 2'},
+      {char1:'halan-reading',char2:'none',bg:'bg-cafe',b1:{text:'',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:'ngày 3 — cô ấy ở quán phở anh hay đến'},
+      {char1:'dung-deadpan',char2:'none',bg:'bg-cafe',b1:{text:'Tô thứ hai nhé.',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'không cần xin lỗi bằng lời'},
+    ]}},
+
+  // ── WORK/OFFICE ──
+  {id:'work-1',cat:'Công sở',name:'Meeting sáng',emoji:'📊',
+   desc:'Cảnh họp sáng thứ Hai',
+   state:{layout:'2x2',bgColor:'#5C7A5A',bubbleShape:'rect',
+    panels:[
+      {char1:'dung-sigh',char2:'none',bg:'bg-room',b1:{text:'Họp lúc 8 giờ sáng.',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'— tại sao —'},
+      {char1:'halan-cold',char2:'none',bg:'bg-room',b1:{text:'Slide chưa xong?',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:''},
+      {char1:'dung-sweat',char2:'none',bg:'bg-room',b1:{text:'Đang làm…',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'22:58'},
+      {char1:'halan-reading',char2:'none',bg:'bg-room',b1:{text:'',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:'— cô ấy ngồi làm cùng —'},
+    ]}},
+  {id:'work-2',cat:'Công sở',name:'Deadline',emoji:'⏰',
+   desc:'Chạy deadline cùng nhau',
+   state:{layout:'1x3',bgColor:'#C85C3E',bubbleShape:'shout',
+    panels:[
+      {char1:'dung-angry',char2:'none',bg:'bg-room',b1:{text:'CÒN 2 TIẾNG!',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+      {char1:'halan-cold',char2:'none',bg:'bg-room',b1:{text:'Bình tĩnh.',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:''},
+      {char1:'dung-deadpan',char2:'halan-happy',bg:'bg-room',b1:{text:'Submit!',pos:'top-left'},b2:{text:'Cuối cùng!',pos:'top-right'},caption:'23:59'},
+    ]}},
+
+  // ── BLANK TEMPLATES ──
+  {id:'blank-2x2',cat:'Trống',name:'Blank 2×2',emoji:'⬜',
+   desc:'4 panel trống để tự điền',
+   state:{layout:'2x2',bgColor:'#E08160',bubbleShape:'oval',
+    panels:[
+      {char1:'none',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+      {char1:'none',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:''},
+      {char1:'none',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+      {char1:'none',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:''},
+    ]}},
+  {id:'blank-1x4',cat:'Trống',name:'Blank Strip',emoji:'📜',
+   desc:'4 panel dọc webtoon style',
+   state:{layout:'1x4',bgColor:'#E08160',bubbleShape:'oval',
+    panels:[
+      {char1:'none',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+      {char1:'none',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:''},
+      {char1:'none',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+      {char1:'none',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:''},
+    ]}},
+  {id:'blank-1x1',cat:'Trống',name:'Single Panel',emoji:'🖼️',
+   desc:'1 panel đơn',
+   state:{layout:'1x1',bgColor:'#E08160',bubbleShape:'oval',
+    panels:[
+      {char1:'none',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+    ]}},
+];
+
+const TPL_CATS=['Tất cả','Lãng mạn','Hài hước','Đời thường','Drama','Công sở','Trống'];
+let _tplCat='Tất cả';
+
+function openTpl(){
+  renderTplModal();
+  document.getElementById('tpl-modal').classList.add('open');
+}
+function closeTpl(){document.getElementById('tpl-modal').classList.remove('open');}
+
+function renderTplModal(){
+  // categories
+  const cats=document.getElementById('tpl-cats');
+  cats.innerHTML=TPL_CATS.map(c=>`<div class="pill${_tplCat===c?' on':''}" onclick="filterTpl('${c}')">${c}</div>`).join('');
+  // grid
+  const grid=document.getElementById('tpl-grid');
+  const filtered=_tplCat==='Tất cả' ? TEMPLATES : TEMPLATES.filter(t=>t.cat===_tplCat);
+  grid.innerHTML=filtered.map(t=>`
+    <div class="tpl-card" onclick="applyTpl('${t.id}')">
+      <div class="tpl-thumb">${t.emoji}</div>
+      <div class="tpl-name">${t.name}</div>
+      <div class="tpl-desc">${t.desc}</div>
+      <div class="tpl-tag">${t.cat}</div>
+    </div>`).join('');
+}
+function filterTpl(cat){_tplCat=cat;renderTplModal();}
+function applyTpl(id){
+  const t=TEMPLATES.find(x=>x.id===id);
+  if(!t) return;
+  Object.assign(S,JSON.parse(JSON.stringify(t.state)));
+  // sync layout button
+  document.querySelectorAll('#layout-picker .lp-btn').forEach(b=>{
+    b.classList.toggle('on', b.getAttribute('onclick')?.includes(`'${S.layout}'`));
+  });
+  buildEd();render();snap();scheduleSave();
+  closeTpl();
+}
+document.getElementById('tpl-modal').addEventListener('click',e=>{if(e.target===document.getElementById('tpl-modal'))closeTpl();});
+
 // ══ CONTROLS ══
 function setLayout(l,el){
+  setLayoutKey(l);
+  document.querySelectorAll('#layout-picker .lp-btn').forEach(p=>p.classList.remove('on'));
+  if(el) el.classList.add('on');
+  buildEd();render();snap();scheduleSave();
+}
+function setLayoutKey(l){
   S.layout=l;
-  document.querySelectorAll('#lp .pill').forEach(p=>p.classList.remove('on'));
-  el.classList.add('on');
   const n=cnt();
   while(S.panels.length<n) S.panels.push({char1:'dung-deadpan',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''});
-  buildEd();render();
 }
 function setSize(s,el){S.size=s;document.querySelectorAll('#sp .pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');render();}
-function setBg(c,el){S.bgColor=c;document.querySelectorAll('#bg-sw .sw').forEach(s=>s.classList.remove('on'));el.classList.add('on');render();}
-function setBgCustom(c){S.bgColor=c;const d=document.getElementById('sw-cust');d.style.background=c;document.querySelectorAll('#bg-sw .sw').forEach(s=>s.classList.remove('on'));d.classList.add('on');render();}
-function setBShape(s,el){S.bubbleShape=s;document.querySelectorAll('#bshape-pills .pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');render();}
-function cnt(){return{'2x2':4,'1x4':4,'1x3':3,'1x2':2,'1x1':1}[S.layout]||4;}
-function grd(){return{'2x2':{c:2,r:2},'1x4':{c:1,r:4},'1x3':{c:1,r:3},'1x2':{c:1,r:2},'1x1':{c:1,r:1}}[S.layout];}
+function setBg(c,el){S.bgColor=c;document.querySelectorAll('#bg-sw .sw').forEach(s=>s.classList.remove('on'));el.classList.add('on');render();snap();scheduleSave();}
+function setBgCustom(c){S.bgColor=c;const d=document.getElementById('sw-cust');d.style.background=c;document.querySelectorAll('#bg-sw .sw').forEach(s=>s.classList.remove('on'));d.classList.add('on');render();snap();scheduleSave();}
+function setBShape(s,el){S.bubbleShape=s;document.querySelectorAll('#bshape-pills .pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');render();snap();scheduleSave();}
+function cnt(){return{'2x2':4,'1x4':4,'1x3':3,'1x2':2,'1x1':1,'2x1':2,'1+2':3,'3x1':3}[S.layout]||4;}
+function grd(){return{'2x2':{c:2,r:2},'1x4':{c:1,r:4},'1x3':{c:1,r:3},'1x2':{c:1,r:2},'1x1':{c:1,r:1},'2x1':{c:2,r:1},'1+2':{c:2,r:2},'3x1':{c:3,r:1}}[S.layout]||{c:2,r:2};}
 
 // ══ CHAR + BG OPTIONS ══
 const CHARS=[
@@ -692,23 +1122,31 @@ function cOpts(sel){return CHARS.map(([v,l])=>`<option value="${v}"${sel===v?' s
 function bgOpts(sel){return BGS.map(([v,l])=>`<option value="${v}"${sel===v?' selected':''}>${l}</option>`).join('');}
 function bpOpts(sel){return BPOS.map(([v,l])=>`<option value="${v}"${sel===v?' selected':''}>${l}</option>`).join('');}
 
-// ══ BUILD EDITORS ══
+// ══ BUILD EDITORS (US-13 context menu + US-14 drag handles) ══
 function buildEd(){
   const wrap=document.getElementById('pw');
   wrap.innerHTML='';
   for(let i=0;i<cnt();i++){
     const p=S.panels[i];
-    const d=document.createElement('div');d.className='ped';
-    d.innerHTML=`<h4>Panel ${i+1}</h4>
+    const d=document.createElement('div');
+    d.className='ped';
+    d.draggable=true;
+    d.dataset.idx=i;
+    d.innerHTML=`
+    <h4 style="display:flex;align-items:center;gap:5px;cursor:context-menu" oncontextmenu="showCtxMenu(event,${i})">
+      <span class="drag-handle" title="Kéo để đổi thứ tự">⠿</span>
+      Panel ${i+1}
+      <span style="margin-left:auto;cursor:pointer;color:#333;font-size:11px" onclick="showCtxMenu(event,${i})" title="Tùy chọn panel">⋯</span>
+    </h4>
     <div class="r2">
-      <div class="f"><label>NV trái/giữa</label><select onchange="S.panels[${i}].char1=this.value;render()">${cOpts(p.char1)}</select></div>
-      <div class="f"><label>NV phải</label><select onchange="S.panels[${i}].char2=this.value;render()">${cOpts(p.char2)}</select></div>
+      <div class="f"><label>NV trái/giữa</label><select onchange="S.panels[${i}].char1=this.value;render();snap();scheduleSave()">${cOpts(p.char1)}</select></div>
+      <div class="f"><label>NV phải</label><select onchange="S.panels[${i}].char2=this.value;render();snap();scheduleSave()">${cOpts(p.char2)}</select></div>
     </div>
-    <div class="f"><label>Background</label><select onchange="S.panels[${i}].bg=this.value;render()">${bgOpts(p.bg||'bg-plain')}</select></div>
+    <div class="f"><label>Background</label><select onchange="S.panels[${i}].bg=this.value;render();snap();scheduleSave()">${bgOpts(p.bg||'bg-plain')}</select></div>
     <div class="f"><label>Bubble 1</label>
       <div class="r2" style="margin-bottom:3px">
         <div class="f"><label style="font-size:8px;color:#555">Vị trí</label><select onchange="S.panels[${i}].b1.pos=this.value;render()">${bpOpts(p.b1.pos)}</select></div>
-        <div class="f"><label style="font-size:8px;color:#555">Shape (override)</label>
+        <div class="f"><label style="font-size:8px;color:#555">Shape</label>
           <select onchange="S.panels[${i}].b1.shape=this.value;render()">
             <option value="">— Global —</option>
             <option value="oval"${(p.b1.shape==='oval')?' selected':''}>⬭ Oval</option>
@@ -717,12 +1155,12 @@ function buildEd(){
             <option value="shout"${(p.b1.shape==='shout')?' selected':''}>⚡ Shout</option>
           </select></div>
       </div>
-      <textarea oninput="S.panels[${i}].b1.text=this.value;render()">${p.b1.text}</textarea>
+      <textarea oninput="S.panels[${i}].b1.text=this.value;render();snap();scheduleSave()">${p.b1.text}</textarea>
     </div>
     <div class="f"><label>Bubble 2</label>
       <div class="r2" style="margin-bottom:3px">
         <div class="f"><label style="font-size:8px;color:#555">Vị trí</label><select onchange="S.panels[${i}].b2.pos=this.value;render()">${bpOpts(p.b2.pos)}</select></div>
-        <div class="f"><label style="font-size:8px;color:#555">Shape (override)</label>
+        <div class="f"><label style="font-size:8px;color:#555">Shape</label>
           <select onchange="S.panels[${i}].b2.shape=this.value;render()">
             <option value="">— Global —</option>
             <option value="oval"${(p.b2.shape==='oval')?' selected':''}>⬭ Oval</option>
@@ -731,13 +1169,43 @@ function buildEd(){
             <option value="shout"${(p.b2.shape==='shout')?' selected':''}>⚡ Shout</option>
           </select></div>
       </div>
-      <textarea oninput="S.panels[${i}].b2.text=this.value;render()">${p.b2.text}</textarea>
+      <textarea oninput="S.panels[${i}].b2.text=this.value;render();snap();scheduleSave()">${p.b2.text}</textarea>
     </div>
-    <div class="f"><label>Caption / chú thích nhỏ</label>
-      <textarea oninput="S.panels[${i}].caption=this.value;render()">${p.caption}</textarea>
+    <div class="f"><label>Caption</label>
+      <textarea oninput="S.panels[${i}].caption=this.value;render();snap();scheduleSave()">${p.caption}</textarea>
     </div>`;
     wrap.appendChild(d);
   }
+  initDnD(); // US-14
+}
+
+// ══ US-14: PANEL DRAG-AND-DROP REORDER ══
+let _dragSrc=-1;
+function initDnD(){
+  const peds=document.querySelectorAll('.ped');
+  peds.forEach(ped=>{
+    ped.addEventListener('dragstart',e=>{
+      _dragSrc=+ped.dataset.idx;
+      ped.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+    });
+    ped.addEventListener('dragend',()=>{
+      document.querySelectorAll('.ped').forEach(p=>{p.classList.remove('dragging','drag-over');});
+    });
+    ped.addEventListener('dragover',e=>{
+      e.preventDefault();e.dataTransfer.dropEffect='move';
+      document.querySelectorAll('.ped').forEach(p=>p.classList.remove('drag-over'));
+      ped.classList.add('drag-over');
+    });
+    ped.addEventListener('drop',e=>{
+      e.preventDefault();
+      const dst=+ped.dataset.idx;
+      if(_dragSrc===dst||_dragSrc<0) return;
+      const moved=S.panels.splice(_dragSrc,1)[0];
+      S.panels.splice(dst,0,moved);
+      buildEd();render();snap();scheduleSave();
+    });
+  });
 }
 
 function resetPanels(){
@@ -747,7 +1215,25 @@ function resetPanels(){
     {char1:'dung-confused',char2:'none',bg:'bg-cafe',b1:{text:'ĐỪNG GÌ?',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:'anh chỉ định hỏi cô biết quán phở nào ngon\nở Hai Bà Trưng không thôi mà…\n— cô nghĩ anh nói gì?'},
     {char1:'halan-embarrassed',char2:'none',bg:'bg-room',b1:{text:'…À.',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:'tưởng cái khác.\nphở Lý Quốc Sư đi.\nđông nhưng đáng.\ncấm hỏi thêm.\n— không nhìn vào mắt anh —'},
   ];
-  buildEd();render();
+  S.layout='2x2';
+  document.querySelectorAll('#layout-picker .lp-btn').forEach((b,i)=>b.classList.toggle('on',i===0));
+  buildEd();render();snap();scheduleSave();
+}
+
+// ══ US-24: AUTO TEXT-FIT HELPER ══
+// Called inside mkBubble — shrinks fSz if text overflows bubble
+function autoFitFontSize(text,maxBW,padX,fSzStart,minFSz=20){
+  let fSz=fSzStart;
+  while(fSz>minFSz){
+    const lines=wrapL(text,maxBW-padX*2,fSz);
+    const lineMaxW=lines.reduce((m,l)=>Math.max(m,l.length*fSz*0.52),0);
+    const bw=lineMaxW+padX*2+6;
+    const bh=lines.length*fSz*1.28+padX;
+    // check fits in max width
+    if(bw<=maxBW) break;
+    fSz-=2;
+  }
+  return Math.max(fSz,minFSz);
 }
 
 // ══ RENDER ══
@@ -759,11 +1245,21 @@ function render(){
   const aW=W-GAP*(c+1), aH=H-HDR-FTR-GAP*(r+1);
   const pW=Math.floor(aW/c), pH=Math.floor(aH/r);
   let panels='';
-  for(let i=0;i<n;i++){
-    const col=i%c,row=Math.floor(i/c);
-    panels+=mkPanel(GAP+col*(pW+GAP), HDR+GAP+row*(pH+GAP), pW, pH, S.panels[i]||{}, font);
+
+  if(S.layout==='1+2'){
+    // Special: 1 large left + 2 small right
+    const bigW=Math.floor(aW*0.55), smW=aW-bigW-GAP;
+    const smH=Math.floor((aH-GAP)/2);
+    panels+=mkPanel(GAP, HDR+GAP, bigW, aH, S.panels[0]||{}, font);
+    panels+=mkPanel(GAP+bigW+GAP, HDR+GAP, smW, smH, S.panels[1]||{}, font);
+    panels+=mkPanel(GAP+bigW+GAP, HDR+GAP+smH+GAP, smW, smH, S.panels[2]||{}, font);
+  } else {
+    for(let i=0;i<n;i++){
+      const col=i%c,row=Math.floor(i/c);
+      panels+=mkPanel(GAP+col*(pW+GAP), HDR+GAP+row*(pH+GAP), pW, pH, S.panels[i]||{}, font);
+    }
   }
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" style="font-family:${font}">
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" style="font-family:${font}" id="comic-svg">
 <defs>${getDefs()}<pattern id="pBg" x="0" y="0" width="160" height="160" patternUnits="userSpaceOnUse">
 <rect width="160" height="160" fill="#F2ECD8"/>
 <circle cx="13" cy="22" r=".7" fill="#2C2416" opacity=".13"/>
@@ -1102,9 +1598,35 @@ document.getElementById('btn-exp').addEventListener('click',async()=>{
   }catch(e){btn.textContent='⚠ Lỗi';hint.textContent=e.message;setTimeout(()=>{btn.textContent='⬇ Export PNG';btn.disabled=false;},2500);}
 });
 
+// ══ US-46: KEYBOARD SHORTCUTS ══
+document.addEventListener('keydown',e=>{
+  const mac=e.metaKey, ctrl=e.ctrlKey, mod=mac||ctrl;
+  if(mod&&!e.shiftKey&&e.key==='z'){e.preventDefault();undo();return;}
+  if(mod&&e.shiftKey&&e.key==='z'){e.preventDefault();redo();return;}
+  if(mod&&e.key==='s'){e.preventDefault();scheduleSave();return;}
+  if(mod&&e.key==='e'){e.preventDefault();document.getElementById('btn-exp').click();return;}
+  if(mod&&e.key==='d'){e.preventDefault();if(_ctxPanelIdx>=0)ctxDuplicate();return;}
+  // ? = show shortcuts hint
+  if(e.key==='?'&&!e.target.closest('input,textarea,select')){
+    alert('Shortcuts:\nCmd+Z — Undo\nCmd+Shift+Z — Redo\nCmd+S — Lưu draft\nCmd+E — Export PNG\n? — Help');
+  }
+});
+
 // ══ INIT ══
-buildEd();render();
+// load draft or start fresh
+const hadDraft=loadDraft();
+buildEd();
+render();
+// sync layout picker on load
+document.querySelectorAll('#layout-picker .lp-btn').forEach(b=>{
+  b.classList.toggle('on', b.getAttribute('onclick')?.includes(`'${S.layout}'`));
+});
+// take initial snapshot
+snapshot();
+// autosave every 30s
+setInterval(scheduleSave, 30000);
 window.addEventListener('resize',render);
+window.addEventListener('beforeunload',()=>{ localStorage.setItem(SAVE_KEY,JSON.stringify(S)); });
 </script>
 </body>
 </html>
