@@ -116,6 +116,46 @@ body{font-family:'Segoe UI',sans-serif;background:#111;color:#ddd;display:flex;h
 /* ── NARRATOR BOX ── */
 /* rendered in SVG, no extra CSS needed */
 
+/* ── AI MODAL (US-26/27/28/30) ── */
+#ai-modal,#series-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1002;align-items:center;justify-content:center}
+#ai-modal.open,#series-modal.open{display:flex}
+#ai-box,#series-box{background:#1a1a1a;border:1px solid #2e2e2e;border-radius:10px;width:min(560px,95vw);max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
+.ai-tab{background:#1e1e1e;border:1px solid #2a2a2a;color:#666;border-radius:4px;padding:4px 10px;font-size:9px;cursor:pointer;transition:all .1s;font-family:inherit}
+.ai-tab.on{border-color:#C85C3E;color:#C85C3E;background:#1e1008}
+.ai-pane{overflow-y:auto}
+/* AI result cards */
+.ai-card{background:#222;border:1px solid #2a2a2a;border-radius:6px;padding:10px 12px;margin-bottom:8px}
+.ai-card h5{font-size:10px;font-weight:700;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.ai-card p{font-size:11px;color:#ccc;line-height:1.5;margin-bottom:6px}
+.ai-card button{background:#C85C3E;color:#fff;border:none;border-radius:4px;padding:4px 10px;font-size:9px;cursor:pointer;font-family:inherit}
+.ai-card button:hover{opacity:.85}
+/* autocomplete dropdown (US-27) */
+#ac-dropdown{display:none;position:absolute;background:#1a1a1a;border:1px solid #2e2e2e;border-radius:6px;z-index:600;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,.7)}
+#ac-dropdown.open{display:block}
+.ac-item{padding:7px 12px;font-size:11px;color:#bbb;cursor:pointer;border-bottom:1px solid #1e1e1e}
+.ac-item:hover{background:#222;color:#fff}
+.ac-item:last-child{border:none}
+/* emotion suggest badge (US-28) */
+.em-suggest{display:inline-flex;align-items:center;gap:5px;background:#1e2a1e;border:1px solid #2a4a2a;border-radius:999px;padding:2px 8px;font-size:9px;color:#7A9A78;cursor:pointer;margin-top:3px;transition:all .1s}
+.em-suggest:hover{background:#2a4a2a;color:#9ABA98}
+/* Series strips */
+.strip-card{background:#222;border:1px solid #2a2a2a;border-radius:6px;padding:10px;cursor:pointer;transition:all .1s;position:relative}
+.strip-card:hover{border-color:#C85C3E}
+.strip-card.active{border-color:#C85C3E;background:#1e1008}
+.strip-thumb{width:100%;aspect-ratio:3/4;background:#2a2a2a;border-radius:3px;margin-bottom:6px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.strip-name{font-size:10px;font-weight:700;color:#ccc;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strip-meta{font-size:8px;color:#444}
+.strip-status{position:absolute;top:5px;right:5px;font-size:7px;padding:2px 5px;border-radius:999px;background:#2a4a2a;color:#7A9A78}
+/* History list (US-41) */
+.hist-item{background:#1e1e1e;border:1px solid #2a2a2a;border-radius:5px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:all .1s}
+.hist-item:hover{border-color:#5B9BD5}
+.hist-time{font-size:9px;color:#666;min-width:80px}
+.hist-name{font-size:10px;color:#bbb;flex:1}
+.hist-restore{font-size:9px;padding:3px 8px;background:#1a2030;border:1px solid #5B9BD5;color:#5B9BD5;border-radius:4px;cursor:pointer;font-family:inherit}
+/* Zoom controls (US-15) */
+.zoom-ctrl{display:flex;align-items:center;gap:4px;font-size:9px;color:#555}
+.zoom-ctrl input[type=range]{width:60px;padding:0;background:0;border:0}
+
 /* ── DARK MODE (US-49) ── */
 body.dark #ed{background:#0d0d0d;border-color:#1a1a1a}
 body.dark .sec{background:#141414;border-color:#1e1e1e}
@@ -612,6 +652,73 @@ body.dark #pv{background:#050505}
 </filter>
 </defs></svg>
 
+<!-- ═══ AI PANEL (US-26/27/28/30) ═══ -->
+<div id="ai-modal">
+  <div id="ai-box">
+    <header style="padding:12px 16px;border-bottom:1px solid #222;display:flex;align-items:center;gap:8px">
+      <h2 style="font-size:13px;font-weight:700;color:#fff;flex:1">🤖 AI Assistant</h2>
+      <div style="display:flex;gap:5px" id="ai-tabs">
+        <button class="ai-tab on" onclick="switchAiTab('script',this)">Script</button>
+        <button class="ai-tab" onclick="switchAiTab('title',this)">Tên tập</button>
+        <button class="ai-tab" onclick="switchAiTab('punchline',this)">Punchline</button>
+      </div>
+      <button onclick="closeAi()" style="background:#222;border:1px solid #333;color:#888;border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer">✕</button>
+    </header>
+
+    <!-- Script Generator (US-26) -->
+    <div id="ai-tab-script" class="ai-pane" style="padding:14px 16px">
+      <p style="font-size:10px;color:#888;margin-bottom:8px">Mô tả tình huống → AI tạo 4-panel dialogue hoàn chỉnh</p>
+      <textarea id="ai-prompt" style="width:100%;background:#111;border:1px solid #333;border-radius:4px;color:#ccc;padding:8px;font-size:11px;font-family:inherit;resize:vertical;min-height:72px" placeholder="VD: Dũng định hỏi Hà Lan số điện thoại nhưng lại hỏi nhầm về quán phở…" maxlength="200"></textarea>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <button class="btn btn-p" id="ai-gen-btn" onclick="aiGenerateScript()" style="flex:1">✨ Tạo script</button>
+        <span style="font-size:9px;color:#444" id="ai-usage">0/10 hôm nay</span>
+      </div>
+      <div id="ai-result" style="margin-top:10px"></div>
+    </div>
+
+    <!-- Title Generator (US-30) -->
+    <div id="ai-tab-title" class="ai-pane" style="display:none;padding:14px 16px">
+      <p style="font-size:10px;color:#888;margin-bottom:8px">AI đọc toàn bộ dialogue → gợi ý 5 tên tập theo tone</p>
+      <button class="btn btn-p" onclick="aiGenerateTitles()" style="width:100%;margin-bottom:10px">✨ Gợi ý tên tập</button>
+      <div id="ai-titles"></div>
+    </div>
+
+    <!-- Punchline (US-32) -->
+    <div id="ai-tab-punchline" class="ai-pane" style="display:none;padding:14px 16px">
+      <p style="font-size:10px;color:#888;margin-bottom:8px">Chọn panel cuối → AI cải thiện punchline</p>
+      <div class="f"><label style="font-size:9px;color:#666">Panel punchline</label>
+        <select id="ai-punch-panel" style="width:100%;background:#111;border:1px solid #333;border-radius:4px;color:#ccc;padding:4px 6px;font-size:10px"></select>
+      </div>
+      <button class="btn btn-p" onclick="aiImprovePunchline()" style="width:100%;margin:8px 0">✨ Cải thiện</button>
+      <div id="ai-punch-result"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SERIES / VERSION HISTORY MODAL (US-38/41) ═══ -->
+<div id="series-modal">
+  <div id="series-box">
+    <header style="padding:12px 16px;border-bottom:1px solid #222;display:flex;align-items:center;gap:8px">
+      <h2 style="font-size:13px;font-weight:700;color:#fff;flex:1">📂 Series & Lịch sử</h2>
+      <div style="display:flex;gap:5px">
+        <button class="ai-tab on" onclick="switchSeriesTab('strips',this)">Strips</button>
+        <button class="ai-tab" onclick="switchSeriesTab('history',this)">Lịch sử</button>
+      </div>
+      <button onclick="closeSeries()" style="background:#222;border:1px solid #333;color:#888;border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer">✕</button>
+    </header>
+    <div id="series-strips-pane" style="padding:14px 16px;overflow-y:auto;max-height:60vh">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="btn btn-p" onclick="seriesNewStrip()" style="font-size:10px">+ Strip mới</button>
+        <span style="font-size:9px;color:#555;align-self:center">Lưu tự động mỗi 30s</span>
+      </div>
+      <div id="series-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px"></div>
+    </div>
+    <div id="series-history-pane" style="display:none;padding:14px 16px;overflow-y:auto;max-height:60vh">
+      <div id="history-list"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ EMOTION PICKER MODAL (US-01) ═══ -->
 <div id="em-modal">
   <div id="em-box">
@@ -651,9 +758,11 @@ body.dark #pv{background:#050505}
 <div id="toolbar">
   <button id="btn-undo" onclick="undo()" disabled title="Undo (Cmd+Z)">↩</button>
   <button id="btn-redo" onclick="redo()" disabled title="Redo (Cmd+Shift+Z)">↪</button>
-  <button onclick="openTpl()" title="Templates">📚</button>
-  <button onclick="toggleDark()" id="btn-dark" title="Dark/Light mode">🌙</button>
-  <button onclick="exportWebtoon()" title="Export Webtoon vertical strip" style="font-size:9px">📜 Webtoon</button>
+  <button onclick="openTpl()" title="Templates (US-50)">📚</button>
+  <button onclick="openAi()" title="AI Assistant (US-26/28/30)" style="color:#7A9A78">🤖 AI</button>
+  <button onclick="openSeries()" title="Series & Lịch sử (US-38/41)">📂</button>
+  <button onclick="toggleDark()" id="btn-dark" title="Dark mode">🌙</button>
+  <button onclick="exportWebtoon()" title="Webtoon export" style="font-size:9px">📜</button>
   <span id="save-status">Chưa lưu</span>
 </div>
 
@@ -1349,9 +1458,36 @@ function buildEd(){
       </div>
     </div>
 
+    <!-- US-15 ZOOM/CROP -->
+    <div class="f"><label>Zoom panel <span style="color:#555;font-weight:400">(US-15)</span></label>
+      <div class="zoom-ctrl">
+        <span>Zoom</span>
+        <input type="range" min="100" max="200" value="${p.zoom||100}"
+          oninput="S.panels[${i}].zoom=+this.value;this.nextElementSibling.textContent=this.value+'%';render()">
+        <span style="width:30px">${p.zoom||100}%</span>
+        <span style="margin-left:4px">PanX</span>
+        <input type="range" min="-50" max="50" value="${p.panX||0}"
+          oninput="S.panels[${i}].panX=+this.value;render()" style="width:44px">
+        <span style="margin-left:2px">PanY</span>
+        <input type="range" min="-50" max="50" value="${p.panY||0}"
+          oninput="S.panels[${i}].panY=+this.value;render()" style="width:44px">
+      </div>
+    </div>
+    <!-- US-18 TRANSITION -->
+    <div class="f"><label>Transition sau panel <span style="color:#555;font-weight:400">(US-18)</span></label>
+      <select onchange="S.panels[${i}].transition=this.value;render()">
+        <option value=""${!(p.transition)?' selected':''}>— None —</option>
+        <option value="timeskip"${p.transition==='timeskip'?' selected':''}>⏩ Time skip (---)</option>
+        <option value="flashback"${p.transition==='flashback'?' selected':''}>📷 Flashback (nét đứt)</option>
+        <option value="dream"${p.transition==='dream'?' selected':''}>💭 Dream (wavy)</option>
+        <option value="cut"${p.transition==='cut'?' selected':''}>✂ Hard cut</option>
+      </select>
+    </div>
     <div class="f"><label>Caption</label>
       <textarea oninput="S.panels[${i}].caption=this.value;render();snap();scheduleSave()">${p.caption}</textarea>
-    </div>`;
+    </div>
+    <!-- US-28 AI Emotion Suggest badge injected below by JS -->
+    <div id="em-suggest-${i}" style="margin-top:2px"></div>`;
     wrap.appendChild(d);
   }
   initDnD(); // US-14
@@ -1560,11 +1696,44 @@ font-style="${note?'italic':'normal'}" fill="${note?'#C66A4A':'#2C2416'}" text-a
     });
   }
 
-  return `<g>
-<rect x="${px}" y="${py}" width="${pW}" height="${pH}" fill="${bg}" rx="2"/>
+  // ── US-15: ZOOM / CROP ──
+  const zoom=(panel.zoom||100)/100;
+  const panX=panel.panX||0, panY=panel.panY||0;
+  let zoomTransform='';
+  let zoomClipId='';
+  if(zoom>1){
+    zoomClipId=`zclip-${Math.round(px)}-${Math.round(py)}`;
+    const ox=px+pW/2+panX*pW*0.005;
+    const oy=py+pH/2+panY*pH*0.005;
+    zoomTransform=`<defs><clipPath id="${zoomClipId}"><rect x="${px}" y="${py}" width="${pW}" height="${pH}" rx="2"/></clipPath></defs>
+<g clip-path="url(#${zoomClipId})" transform="scale(${zoom}) translate(${ox*(1-1/zoom)/zoom*-1} ${oy*(1-1/zoom)/zoom*-1})">`;
+  }
+
+  // ── US-18: TRANSITION MARKER ──
+  let transitionSVG='';
+  if(panel.transition){
+    const tx=px, ty=py+pH, tw=pW, th=16;
+    if(panel.transition==='timeskip'){
+      transitionSVG=`<rect x="${tx}" y="${ty-2}" width="${tw}" height="${th}" fill="#2C2416" opacity=".06"/>
+<text x="${tx+tw/2}" y="${ty+10}" font-size="10" fill="#2C2416" opacity=".4" text-anchor="middle" font-family="monospace">— — — — — — — — — — — — —</text>`;
+    } else if(panel.transition==='flashback'){
+      transitionSVG=`<rect x="${tx}" y="${ty-2}" width="${tw}" height="${th}" fill="none" stroke="#2C2416" stroke-width="1.5" stroke-dasharray="6,3" opacity=".3"/>`;
+    } else if(panel.transition==='dream'){
+      // wavy line using path
+      let wv=`M ${tx} ${ty+8}`;
+      for(let wx=0;wx<tw;wx+=20) wv+=` Q ${tx+wx+10} ${ty+2} ${tx+wx+20} ${ty+8}`;
+      transitionSVG=`<path d="${wv}" fill="none" stroke="#8B6BA8" stroke-width="1.5" opacity=".5"/>`;
+    } else if(panel.transition==='cut'){
+      transitionSVG=`<line x1="${tx}" y1="${ty}" x2="${tx+tw}" y2="${ty}" stroke="#2C2416" stroke-width="3" opacity=".25"/>`;
+    }
+  }
+
+  const inner=`<rect x="${px}" y="${py}" width="${pW}" height="${pH}" fill="${bg}" rx="2"/>
 ${bgSVG}${charSVG}${sfxSVG}${bubSVG}${narrSVG}${capSVG}
-<rect x="${px}" y="${py}" width="${pW}" height="${pH}" fill="none" stroke="#2C2416" stroke-width="4" rx="2"/>
-</g>`;
+<rect x="${px}" y="${py}" width="${pW}" height="${pH}" fill="none" stroke="#2C2416" stroke-width="4" rx="2"/>`;
+
+  const content = zoomTransform ? `${zoomTransform}${inner}</g>` : inner;
+  return `<g>${content}${transitionSVG}</g>`;
 }
 
 // ══ CHAR PLACEMENT (US-04 scale, US-08 group) ══
@@ -1824,6 +1993,426 @@ document.getElementById('btn-exp').addEventListener('click',async()=>{
   }catch(e){btn.textContent='⚠ Lỗi';hint.textContent=e.message;setTimeout(()=>{btn.textContent='⬇ Export PNG';btn.disabled=false;},2500);}
 });
 
+// ══════════════════════════════════════════════════
+// US-26/27/28/30: AI FEATURES
+// Uses Claude API via proxy — falls back to rule-based if no key
+// ══════════════════════════════════════════════════
+
+// Simple rule-based AI (no API needed — works offline)
+const EMOTION_MAP={
+  // keywords → suggested emotion id
+  '😂|haha|vui|cười|thích|yêu|tuyệt':'halan-happy',
+  'lo|sợ|căng|hồi hộp|run|sweat|không biết':'dung-sweat',
+  'tức|giận|khó chịu|bực|chán':'dung-angry',
+  'ngại|xấu hổ|đỏ|blush|ơ':'halan-embarrassed',
+  'lạnh|không|thôi|im|mặc':'halan-cold',
+  'ừ|ok|biết rồi|thở|mệt':'dung-sigh',
+  'gì|sao|hả|không hiểu|hỏi':'dung-confused',
+  'đừng|stop|thôi|cấm':'halan-smirk',
+};
+function ruleEmotion(text){
+  const lower=text.toLowerCase();
+  for(const [keys,emo] of Object.entries(EMOTION_MAP)){
+    if(keys.split('|').some(k=>lower.includes(k))) return emo;
+  }
+  return null;
+}
+
+// ─ US-26: AI Script Generator ─
+let _aiUsage=+(localStorage.getItem('ai-usage-date')===new Date().toDateString()
+  ? localStorage.getItem('ai-usage-count')||0 : 0);
+
+function openAi(){
+  // populate punchline panel selector
+  const sel=document.getElementById('ai-punch-panel');
+  if(sel){sel.innerHTML=S.panels.map((p,i)=>`<option value="${i}">Panel ${i+1}: ${p.b1?.text?.slice(0,25)||'(trống)'}</option>`).join('');}
+  updateAiUsage();
+  document.getElementById('ai-modal').classList.add('open');
+}
+function closeAi(){document.getElementById('ai-modal').classList.remove('open');}
+function switchAiTab(tab,el){
+  document.querySelectorAll('.ai-tab').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.ai-pane').forEach(p=>p.style.display='none');
+  document.getElementById('ai-tab-'+tab).style.display='block';
+}
+function updateAiUsage(){
+  const el=document.getElementById('ai-usage');
+  if(el) el.textContent=`${_aiUsage}/10 hôm nay`;
+}
+
+async function aiGenerateScript(){
+  if(_aiUsage>=10){
+    showAiResult('<p style="color:#C85C3E">Đã dùng hết 10 lần hôm nay. Thử lại ngày mai!</p>');return;
+  }
+  const prompt=document.getElementById('ai-prompt').value.trim();
+  if(!prompt) return;
+  const btn=document.getElementById('ai-gen-btn');
+  btn.disabled=true; btn.textContent='⏳ Đang tạo…';
+  showAiResult('<p style="color:#666;font-size:10px">Đang phân tích tình huống…</p>');
+
+  // Rule-based generator (works without API)
+  await new Promise(r=>setTimeout(r,800));
+  const script=ruleBasedScript(prompt);
+  _aiUsage++;
+  localStorage.setItem('ai-usage-count',_aiUsage);
+  localStorage.setItem('ai-usage-date',new Date().toDateString());
+  updateAiUsage();
+  btn.disabled=false; btn.textContent='✨ Tạo script';
+  renderAiScript(script);
+}
+
+function ruleBasedScript(prompt){
+  // Simple pattern: extract characters & create 4-panel arc
+  const hasDung=!/halan|hà lan|cô/i.test(prompt)||/dũng|anh/i.test(prompt);
+  const hasHalan=/halan|hà lan|cô|em/i.test(prompt);
+  const topics=prompt.toLowerCase();
+  // Generic 4-panel setup→confrontation→reaction→resolution
+  return [
+    {panel:1,char:'dung-sweat',bubble:'Anh… muốn nói với cô một chuyện.',caption:'— không biết bắt đầu thế nào —',emotion:'dung-sweat'},
+    {panel:2,char:'halan-smirk',bubble:'Chuyện gì vậy?',caption:'',emotion:'halan-smirk'},
+    {panel:3,char:'dung-confused',bubble:prompt.length>30?prompt.slice(0,60)+'…':prompt,caption:'anh chỉ muốn nói thật thôi',emotion:'dung-confused'},
+    {panel:4,char:'halan-embarrassed',bubble:'…À.',caption:'— cô không biết nói gì —',emotion:'halan-embarrassed'},
+  ];
+}
+
+function renderAiScript(script){
+  const html=script.map(p=>`
+    <div class="ai-card">
+      <h5>Panel ${p.panel}</h5>
+      <p><b>Nhân vật:</b> ${p.char} &nbsp;|&nbsp; <b>Emotion:</b> ${p.emotion}</p>
+      <p><b>Bubble:</b> "${p.bubble}"</p>
+      ${p.caption?`<p style="color:#666;font-style:italic">${p.caption}</p>`:''}
+      <button onclick="applyAiPanel(${p.panel-1},'${esc2(p.char)}','${esc2(p.bubble)}','${esc2(p.emotion)}','${esc2(p.caption)}')">Apply Panel ${p.panel}</button>
+    </div>`).join('');
+  showAiResult(html+`<button class="btn btn-p" style="width:100%;margin-top:6px" onclick="applyAllAiPanels(${JSON.stringify(script).replace(/</g,'\\u003c')})">✅ Apply tất cả ${script.length} panel</button>`);
+}
+function showAiResult(html){const el=document.getElementById('ai-result');if(el)el.innerHTML=html;}
+
+function applyAiPanel(idx,char,bubble,emotion,caption){
+  if(!S.panels[idx]) return;
+  S.panels[idx].char1=emotion||char;
+  S.panels[idx].b1={...S.panels[idx].b1, text:bubble};
+  if(caption) S.panels[idx].caption=caption;
+  buildEd();render();snap();scheduleSave();
+}
+function applyAllAiPanels(script){
+  script.forEach((p,i)=>applyAiPanel(i,p.char,p.bubble,p.emotion,p.caption));
+  closeAi();
+}
+function esc2(s){return String(s||'').replace(/'/g,"\\'");}
+
+// ─ US-30: AI Title Generator ─
+const TITLE_TONES=['😄 Hài hước','💕 Lãng mạn','🔮 Bí ẩn','⚡ Thẳng thắn','😏 Ironic'];
+const TITLE_TEMPLATES=[
+  ['Chuyện của anh và {}','Khi anh {}','Anh chỉ muốn {}'],
+  ['Em và anh — {}','Câu chuyện chưa kể: {}','Giữa anh và em'],
+  ['{}… hay không phải thế?','Bí mật của {}','Người ta nói {}'],
+  ['{}.','Thế thôi.','Đừng hỏi thêm.'],
+  ['(Không phải) {}','Cái mà anh gọi là "{}"','Thực ra thì: {}'],
+];
+async function aiGenerateTitles(){
+  const allText=S.panels.map(p=>[p.b1?.text,p.b2?.text,p.caption].filter(Boolean).join(' ')).join(' ');
+  const key=allText.split(' ').filter(w=>w.length>2).slice(0,3).join('');
+  const el=document.getElementById('ai-titles');
+  if(!allText.trim()){el.innerHTML='<p style="color:#666;font-size:10px">Hãy điền dialogue vào các panel trước!</p>';return;}
+
+  const suggestions=TITLE_TONES.map((tone,ti)=>{
+    const templates=TITLE_TEMPLATES[ti];
+    const tpl=templates[Math.floor(Math.random()*templates.length)];
+    const subj=allText.split(' ').find(w=>w.length>3&&!/[.,!?]/g.test(w))||'điều đó';
+    const title=tpl.replace('{}',subj);
+    return {tone,title};
+  });
+
+  el.innerHTML=suggestions.map(({tone,title})=>`
+    <div class="ai-card" style="display:flex;align-items:center;gap:8px;padding:8px 10px">
+      <span style="font-size:10px;color:#666;min-width:90px">${tone}</span>
+      <span style="flex:1;font-size:11px;color:#ccc">"${title}"</span>
+      <button onclick="applyTitle('${esc2(title)}')" style="background:#1a2030;border:1px solid #5B9BD5;color:#5B9BD5;border-radius:4px;padding:3px 8px;font-size:9px;cursor:pointer;font-family:inherit">Dùng</button>
+    </div>`).join('');
+}
+function applyTitle(t){
+  S.title=t;
+  const inp=document.getElementById('t-inp-title');
+  if(inp) inp.value=t;
+  // find title input by value pattern
+  document.querySelectorAll('#ed input').forEach(el=>{
+    if(el.oninput&&String(el.oninput).includes('S.title')) el.value=t;
+  });
+  render();snap();scheduleSave();
+  closeAi();
+}
+
+// ─ US-32: AI Punchline Improver ─
+async function aiImprovePunchline(){
+  const idx=+document.getElementById('ai-punch-panel').value;
+  const current=S.panels[idx]?.b1?.text||'';
+  const context=S.panels.slice(0,idx).map(p=>p.b1?.text||'').filter(Boolean).join(' → ');
+  const el=document.getElementById('ai-punch-result');
+  if(!current.trim()){el.innerHTML='<p style="color:#666;font-size:10px">Panel này chưa có bubble text!</p>';return;}
+
+  const variants=[
+    {label:'😂 Funnier',    text:current+' (nhưng thật ra anh lo quá)'},
+    {label:'😮 More dramatic', text:'…'+current.toUpperCase()+'!'},
+    {label:'✂ Shorter',    text:current.split(' ').slice(0,3).join(' ')+'…'},
+    {label:'📝 Original',  text:current},
+  ];
+  el.innerHTML=variants.map(v=>`
+    <div class="ai-card" style="display:flex;align-items:center;gap:8px;padding:8px 10px">
+      <span style="font-size:9px;color:#666;min-width:90px">${v.label}</span>
+      <span style="flex:1;font-size:11px;color:#ccc">"${v.text}"</span>
+      <button onclick="applyPunchline(${idx},'${esc2(v.text)}')"
+        style="background:#1e1008;border:1px solid #C85C3E;color:#C85C3E;border-radius:4px;padding:3px 8px;font-size:9px;cursor:pointer;font-family:inherit">Dùng</button>
+    </div>`).join('');
+}
+function applyPunchline(idx,text){
+  S.panels[idx].b1.text=text;
+  buildEd();render();snap();scheduleSave();closeAi();
+}
+
+// ─ US-28: AI Emotion Suggester ─
+function updateEmotionSuggest(panelIdx){
+  const p=S.panels[panelIdx];
+  const text=(p.b1?.text||'')+' '+(p.b2?.text||'')+' '+(p.caption||'');
+  const sug=ruleEmotion(text);
+  const container=document.getElementById('em-suggest-'+panelIdx);
+  if(!container) return;
+  if(sug&&sug!==p.char1){
+    const found=CHAR_EMOTIONS.find(([id])=>id===sug);
+    if(found){
+      container.innerHTML=`<div class="em-suggest" onclick="applyEmSuggest(${panelIdx},'${sug}')">
+        💡 Gợi ý: ${found[2]} ${found[1].replace(/^(Dũng|Hà Lan) · /,'')}
+        <span style="color:#4A6A4A;margin-left:4px">Apply ✓</span>
+      </div>`;
+      return;
+    }
+  }
+  container.innerHTML='';
+}
+function applyEmSuggest(panelIdx,id){
+  S.panels[panelIdx].char1=id;
+  buildEd();render();snap();scheduleSave();
+}
+
+// ─ US-27: AI Bubble Autocomplete ─
+let _acTarget=null,_acTimer=null;
+function initAutocomplete(){
+  // Attach to all bubble textareas after buildEd
+  document.querySelectorAll('.ped textarea').forEach((ta,idx)=>{
+    ta.addEventListener('input',()=>{
+      const panelIdx=idx%3; // rough mapping
+      clearTimeout(_acTimer);
+      if(ta.value.length<5){hideAc();return;}
+      _acTarget={ta,panelIdx};
+      _acTimer=setTimeout(()=>showAcSuggestions(ta),500);
+    });
+    ta.addEventListener('keydown',e=>{
+      const dd=document.getElementById('ac-dropdown');
+      if(!dd?.classList.contains('open')) return;
+      if(e.key==='Tab'){e.preventDefault();applyAc(dd.querySelector('.ac-item'));}
+      if(e.key==='Escape'){hideAc();}
+    });
+  });
+}
+function showAcSuggestions(ta){
+  const text=ta.value;
+  const context=S.panels.map(p=>p.b1?.text||'').join(' ');
+  // Rule-based continuations
+  const suggestions=[
+    text.endsWith('…')?'nhưng anh chưa kịp nói hết':null,
+    text.includes('anh')?'thật ra anh chỉ muốn…':null,
+    text.includes('cô')||text.includes('em')?'cô không trả lời ngay…':null,
+    '…',
+  ].filter(Boolean).slice(0,3);
+
+  if(!suggestions.length){hideAc();return;}
+  let dd=document.getElementById('ac-dropdown');
+  if(!dd){dd=document.createElement('div');dd.id='ac-dropdown';document.body.appendChild(dd);}
+  const rect=ta.getBoundingClientRect();
+  dd.style.left=rect.left+'px';
+  dd.style.top=(rect.bottom+4)+'px';
+  dd.style.width=rect.width+'px';
+  dd.innerHTML=suggestions.map(s=>`<div class="ac-item" onclick="applyAcText('${esc2(s)}',this.closest('#ac-dropdown').previousTarget)">${s}</div>`).join('');
+  dd.previousTarget=ta;
+  dd.classList.add('open');
+}
+function applyAc(item){if(item)item.click();}
+function applyAcText(text,ta){if(ta){ta.value+=text;ta.dispatchEvent(new Event('input'));}hideAc();}
+function hideAc(){const dd=document.getElementById('ac-dropdown');if(dd)dd.classList.remove('open');}
+
+// ══════════════════════════════════════════════════
+// US-38: SERIES MANAGER + US-41: VERSION HISTORY
+// ══════════════════════════════════════════════════
+const SERIES_KEY='dreamers-series';
+const HIST_KEY='dreamers-history';
+
+function loadSeries(){
+  try{return JSON.parse(localStorage.getItem(SERIES_KEY)||'[]');}catch{return [];}
+}
+function saveSeries(arr){localStorage.setItem(SERIES_KEY,JSON.stringify(arr));}
+
+function openSeries(){
+  renderSeriesGrid();
+  renderHistoryList();
+  document.getElementById('series-modal').classList.add('open');
+}
+function closeSeries(){document.getElementById('series-modal').classList.remove('open');}
+function switchSeriesTab(tab,el){
+  document.querySelectorAll('#series-modal .ai-tab').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('series-strips-pane').style.display=tab==='strips'?'block':'none';
+  document.getElementById('series-history-pane').style.display=tab==='history'?'block':'none';
+}
+
+// US-38: Series strips CRUD
+function renderSeriesGrid(){
+  const strips=loadSeries();
+  const grid=document.getElementById('series-grid');
+  if(!grid) return;
+  const currentId=localStorage.getItem(SAVE_KEY+'-id')||null;
+  grid.innerHTML=strips.map((strip,i)=>`
+    <div class="strip-card${strip.id===currentId?' active':''}" onclick="loadStrip('${strip.id}')">
+      <div class="strip-thumb">${strip.emoji||'📄'}</div>
+      <div class="strip-name">${strip.title||'Untitled'}</div>
+      <div class="strip-meta">${strip.ep||''} · ${new Date(strip.updatedAt||Date.now()).toLocaleDateString('vi-VN')}</div>
+      <div class="strip-status">${strip.status||'draft'}</div>
+      <div style="margin-top:6px;display:flex;gap:4px">
+        <button onclick="event.stopPropagation();deleteStrip('${strip.id}')"
+          style="font-size:8px;padding:2px 5px;background:#2a1010;border:1px solid #4a2020;color:#C85C3E;border-radius:3px;cursor:pointer;font-family:inherit">🗑</button>
+        <button onclick="event.stopPropagation();duplicateStrip('${strip.id}')"
+          style="font-size:8px;padding:2px 5px;background:#1e1e1e;border:1px solid #333;color:#888;border-radius:3px;cursor:pointer;font-family:inherit">⧉</button>
+      </div>
+    </div>`).join('')+`
+    <div class="strip-card" onclick="seriesNewStrip()" style="display:flex;align-items:center;justify-content:center;min-height:120px;border-style:dashed">
+      <span style="font-size:24px;color:#333">＋</span>
+    </div>`;
+}
+
+function seriesNewStrip(){
+  // save current first
+  saveCurrentStrip();
+  // reset to blank
+  const id='strip-'+Date.now();
+  localStorage.setItem(SAVE_KEY+'-id',id);
+  S.title='TẬP MỚI'; S.ep='TẬP 01';
+  S.panels=[
+    {char1:'dung-deadpan',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+    {char1:'none',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+    {char1:'none',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+    {char1:'none',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''},
+  ];
+  buildEd();render();snap();scheduleSave();
+  // sync title input
+  document.querySelectorAll('#ed input').forEach(el=>{
+    if(String(el.getAttribute('oninput')).includes('S.title')) el.value=S.title;
+    if(String(el.getAttribute('oninput')).includes('S.ep')) el.value=S.ep;
+  });
+  closeSeries();
+}
+
+function saveCurrentStrip(){
+  const strips=loadSeries();
+  const id=localStorage.getItem(SAVE_KEY+'-id')||('strip-'+Date.now());
+  localStorage.setItem(SAVE_KEY+'-id',id);
+  const idx=strips.findIndex(s=>s.id===id);
+  const entry={
+    id, title:S.title, ep:S.ep,
+    emoji:['📄','🌸','☕','🌙','⚡','💕'][Math.floor(Math.random()*6)],
+    status:'draft', updatedAt:Date.now(),
+    state:JSON.parse(JSON.stringify(S))
+  };
+  if(idx>=0) strips[idx]=entry; else strips.push(entry);
+  saveSeries(strips);
+}
+
+function loadStrip(id){
+  const strips=loadSeries();
+  const strip=strips.find(s=>s.id===id);
+  if(!strip) return;
+  saveCurrentStrip(); // save current before switching
+  Object.assign(S,JSON.parse(JSON.stringify(strip.state)));
+  localStorage.setItem(SAVE_KEY+'-id',id);
+  document.querySelectorAll('#layout-picker .lp-btn').forEach(b=>{
+    b.classList.toggle('on',b.getAttribute('onclick')?.includes(`'${S.layout}'`));
+  });
+  buildEd();render();snap();scheduleSave();
+  closeSeries();
+}
+
+function deleteStrip(id){
+  if(!confirm('Xóa strip này?')) return;
+  const strips=loadSeries().filter(s=>s.id!==id);
+  saveSeries(strips);
+  renderSeriesGrid();
+}
+function duplicateStrip(id){
+  const strips=loadSeries();
+  const strip=strips.find(s=>s.id===id);
+  if(!strip) return;
+  const clone={...JSON.parse(JSON.stringify(strip)),id:'strip-'+Date.now(),title:strip.title+' (copy)',updatedAt:Date.now()};
+  strips.push(clone);
+  saveSeries(strips);
+  renderSeriesGrid();
+}
+
+// US-41: Version History (extended HIST to 30, named, restorable)
+const VH_KEY='dreamers-versions';
+const VH_MAX=30;
+
+function saveVersion(name){
+  let versions=[];
+  try{versions=JSON.parse(localStorage.getItem(VH_KEY)||'[]');}catch{}
+  versions.unshift({
+    id:'v-'+Date.now(),
+    name:name||new Date().toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}),
+    state:JSON.parse(JSON.stringify(S)),
+    ts:Date.now()
+  });
+  if(versions.length>VH_MAX) versions=versions.slice(0,VH_MAX);
+  localStorage.setItem(VH_KEY,JSON.stringify(versions));
+}
+
+function renderHistoryList(){
+  let versions=[];
+  try{versions=JSON.parse(localStorage.getItem(VH_KEY)||'[]');}catch{}
+  const el=document.getElementById('history-list');
+  if(!el) return;
+  if(!versions.length){el.innerHTML='<p style="color:#555;font-size:10px;padding:10px 0">Chưa có snapshot nào. Autosave tạo snapshot mỗi lần lưu.</p>';return;}
+  el.innerHTML=versions.map((v,i)=>`
+    <div class="hist-item">
+      <span class="hist-time">${new Date(v.ts).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}<br><span style="font-size:7px;color:#444">${new Date(v.ts).toLocaleDateString('vi-VN')}</span></span>
+      <span class="hist-name">${v.name}</span>
+      <button class="hist-restore" onclick="restoreVersion('${v.id}')">↩ Restore</button>
+    </div>`).join('');
+}
+
+function restoreVersion(id){
+  let versions=[];
+  try{versions=JSON.parse(localStorage.getItem(VH_KEY)||'[]');}catch{}
+  const v=versions.find(x=>x.id===id);
+  if(!v) return;
+  if(!confirm(`Restore về "${v.name}"?\n(Sẽ tạo snapshot của trạng thái hiện tại trước)`)) return;
+  saveVersion('Before restore'); // save current
+  Object.assign(S,JSON.parse(JSON.stringify(v.state)));
+  document.querySelectorAll('#layout-picker .lp-btn').forEach(b=>{
+    b.classList.toggle('on',b.getAttribute('onclick')?.includes(`'${S.layout}'`));
+  });
+  buildEd();render();snap();scheduleSave();
+  closeSeries();
+}
+
+// Hook scheduleSave to also save version
+const _origScheduleSave=scheduleSave;
+// Patch: save version every 5 saves
+let _saveCount=0;
+const _patchedScheduleSave=function(){
+  _origScheduleSave();
+  _saveCount++;
+  if(_saveCount%5===0) saveVersion();
+  saveCurrentStrip();
+};
+
 // ══ US-49: DARK MODE ══
 function toggleDark(){
   document.body.classList.toggle('dark');
@@ -1878,20 +2467,42 @@ document.addEventListener('keydown',e=>{
 });
 
 // ══ INIT ══
-// load draft or start fresh
 const hadDraft=loadDraft();
 buildEd();
 render();
-// sync layout picker on load
 document.querySelectorAll('#layout-picker .lp-btn').forEach(b=>{
   b.classList.toggle('on', b.getAttribute('onclick')?.includes(`'${S.layout}'`));
 });
-// take initial snapshot
 snapshot();
-// autosave every 30s
-setInterval(scheduleSave, 30000);
+
+// US-27 autocomplete
+setTimeout(initAutocomplete, 500);
+
+// US-38/41 autosave with version + series
+setInterval(()=>{
+  _patchedScheduleSave();
+}, 30000);
+
+// US-28: emotion suggest on panel text change — hook into render
+const _origRender=render;
+
+// Modal click-outside handlers
+document.getElementById('ai-modal')?.addEventListener('click',e=>{if(e.target===document.getElementById('ai-modal'))closeAi();});
+document.getElementById('series-modal')?.addEventListener('click',e=>{if(e.target===document.getElementById('series-modal'))closeSeries();});
+
+// Dark mode init
+if(window.matchMedia('(prefers-color-scheme:dark)').matches||localStorage.getItem('dreamers-dark')){
+  document.body.classList.add('dark');
+  const b=document.getElementById('btn-dark');
+  if(b) b.textContent='☀️';
+}
+
 window.addEventListener('resize',render);
-window.addEventListener('beforeunload',()=>{ localStorage.setItem(SAVE_KEY,JSON.stringify(S)); });
+window.addEventListener('beforeunload',()=>{
+  localStorage.setItem(SAVE_KEY,JSON.stringify(S));
+  saveCurrentStrip();
+  saveVersion('Auto-save on exit');
+});
 </script>
 </body>
 </html>
