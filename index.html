@@ -89,6 +89,42 @@ body{font-family:'Segoe UI',sans-serif;background:#111;color:#ddd;display:flex;h
 #ctx-menu button:hover{background:#2a2a2a;color:#fff}
 #ctx-menu .ctx-sep{height:1px;background:#222;margin:3px 0}
 
+/* ── EMOTION PICKER ── */
+#em-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:1001;align-items:center;justify-content:center}
+#em-modal.open{display:flex}
+#em-box{background:#1a1a1a;border:1px solid #2e2e2e;border-radius:10px;width:min(540px,95vw);max-height:80vh;display:flex;flex-direction:column}
+#em-box header{padding:12px 16px;border-bottom:1px solid #222;display:flex;gap:8px;align-items:center}
+#em-box header h2{font-size:12px;font-weight:700;color:#fff;flex:1}
+#em-search{flex:1;background:#111;border:1px solid #333;border-radius:4px;color:#ccc;padding:4px 8px;font-size:11px;font-family:inherit}
+#em-grid{overflow-y:auto;padding:10px 14px;flex:1}
+.em-group-label{font-size:9px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.6px;margin:8px 0 4px;padding-bottom:3px;border-bottom:1px solid #1e1e1e}
+.em-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.em-card{background:#222;border:1px solid #2a2a2a;border-radius:6px;padding:7px 8px;cursor:pointer;transition:all .1s;text-align:center;min-width:70px}
+.em-card:hover{border-color:#C85C3E;background:#1e1008}
+.em-card.on{border-color:#C85C3E;background:#1e1008}
+.em-emoji{font-size:22px;line-height:1;margin-bottom:3px}
+.em-lbl{font-size:8px;color:#888;line-height:1.2}
+/* emotion button in panel editor */
+.em-btn{display:flex;align-items:center;gap:5px;background:#111;border:1px solid #2e2e2e;border-radius:4px;padding:4px 7px;cursor:pointer;font-size:10px;color:#bbb;transition:all .1s;width:100%}
+.em-btn:hover{border-color:#C85C3E;color:#C85C3E}
+
+/* ── SFX STYLES ── */
+.sfx-action{font-weight:900;font-style:italic;fill:#C85C3E;stroke:#2C2416;stroke-width:3;paint-order:stroke}
+.sfx-cute{font-weight:700;fill:#F08080;stroke:#fff;stroke-width:2;paint-order:stroke}
+.sfx-horror{font-weight:900;fill:#2C2416;stroke:#8B0000;stroke-width:2;paint-order:stroke}
+
+/* ── NARRATOR BOX ── */
+/* rendered in SVG, no extra CSS needed */
+
+/* ── DARK MODE (US-49) ── */
+body.dark #ed{background:#0d0d0d;border-color:#1a1a1a}
+body.dark .sec{background:#141414;border-color:#1e1e1e}
+body.dark .ped{background:#0e0e0e;border-color:#181818}
+body.dark .f input,body.dark .f textarea,body.dark .f select{background:#0a0a0a;border-color:#222;color:#bbb}
+body.dark #toolbar{background:#0a0a0a;border-color:#181818}
+body:not(.dark) #pv{background:#111}
+body.dark #pv{background:#050505}
+
 /* ── LAYOUT VISUAL PICKER ── */
 #layout-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:5px}
 .lp-btn{background:#111;border:1px solid #2e2e2e;border-radius:5px;padding:6px 4px;cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;gap:3px}
@@ -576,6 +612,18 @@ body{font-family:'Segoe UI',sans-serif;background:#111;color:#ddd;display:flex;h
 </filter>
 </defs></svg>
 
+<!-- ═══ EMOTION PICKER MODAL (US-01) ═══ -->
+<div id="em-modal">
+  <div id="em-box">
+    <header>
+      <h2>😊 Chọn biểu cảm</h2>
+      <input id="em-search" type="search" placeholder="Tìm kiếm…" oninput="renderEmGrid(this.value,_emotionPickerTarget&&S.panels[_emotionPickerTarget.panelIdx][_emotionPickerTarget.slot])">
+      <button onclick="closeEmotionPicker()" style="background:#222;border:1px solid #333;color:#888;border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer">✕</button>
+    </header>
+    <div id="em-grid"></div>
+  </div>
+</div>
+
 <!-- ═══ TEMPLATE MODAL (US-50) ═══ -->
 <div id="tpl-modal">
   <div id="tpl-box">
@@ -601,9 +649,11 @@ body{font-family:'Segoe UI',sans-serif;background:#111;color:#ddd;display:flex;h
 <div style="display:flex;flex-direction:column;width:310px;min-width:310px;height:100vh">
 <!-- ── TOOLBAR (US-45 + US-47) ── -->
 <div id="toolbar">
-  <button id="btn-undo" onclick="undo()" disabled title="Undo (Cmd+Z)">↩ Undo</button>
-  <button id="btn-redo" onclick="redo()" disabled title="Redo (Cmd+Shift+Z)">↪ Redo</button>
-  <button onclick="openTpl()" title="Template library">📚</button>
+  <button id="btn-undo" onclick="undo()" disabled title="Undo (Cmd+Z)">↩</button>
+  <button id="btn-redo" onclick="redo()" disabled title="Redo (Cmd+Shift+Z)">↪</button>
+  <button onclick="openTpl()" title="Templates">📚</button>
+  <button onclick="toggleDark()" id="btn-dark" title="Dark/Light mode">🌙</button>
+  <button onclick="exportWebtoon()" title="Export Webtoon vertical strip" style="font-size:9px">📜 Webtoon</button>
   <span id="save-status">Chưa lưu</span>
 </div>
 
@@ -1098,16 +1148,73 @@ function setBShape(s,el){S.bubbleShape=s;document.querySelectorAll('#bshape-pill
 function cnt(){return{'2x2':4,'1x4':4,'1x3':3,'1x2':2,'1x1':1,'2x1':2,'1+2':3,'3x1':3}[S.layout]||4;}
 function grd(){return{'2x2':{c:2,r:2},'1x4':{c:1,r:4},'1x3':{c:1,r:3},'1x2':{c:1,r:2},'1x1':{c:1,r:1},'2x1':{c:2,r:1},'1+2':{c:2,r:2},'3x1':{c:3,r:1}}[S.layout]||{c:2,r:2};}
 
-// ══ CHAR + BG OPTIONS ══
-const CHARS=[
-  ['none','— Không có —'],
-  ['dung-deadpan','Dũng · deadpan'],['dung-sweat','Dũng · căng/lo'],
-  ['dung-confused','Dũng · hỏi lại'],['dung-angry','Dũng · tức'],
-  ['dung-sigh','Dũng · thở dài'],
-  ['halan-reading','Hà Lan · bình thản'],['halan-smirk','Hà Lan · nhìn thẳng'],
-  ['halan-embarrassed','Hà Lan · đỏ mặt'],['halan-cold','Hà Lan · lạnh lùng'],
-  ['halan-happy','Hà Lan · vui'],
+// ══ US-01: EMOTION PALETTE — full character+emotion registry ══
+// Each entry: [id, label, emoji, group]
+const CHAR_EMOTIONS=[
+  // Dũng
+  ['none',         '— Không có —',          '·',  'none'],
+  ['dung-deadpan', 'Dũng · thờ ơ',          '😐', 'Dũng'],
+  ['dung-sweat',   'Dũng · căng / lo lắng', '😰', 'Dũng'],
+  ['dung-confused','Dũng · bối rối',         '😕', 'Dũng'],
+  ['dung-angry',   'Dũng · tức giận',        '😠', 'Dũng'],
+  ['dung-sigh',    'Dũng · thở dài / mệt',  '😮‍💨','Dũng'],
+  // Hà Lan
+  ['halan-reading',    'Hà Lan · bình thản',   '😌', 'Hà Lan'],
+  ['halan-smirk',      'Hà Lan · nhìn thẳng',  '🙂', 'Hà Lan'],
+  ['halan-embarrassed','Hà Lan · xấu hổ/đỏ',  '😳', 'Hà Lan'],
+  ['halan-cold',       'Hà Lan · lạnh lùng',   '🥶', 'Hà Lan'],
+  ['halan-happy',      'Hà Lan · vui vẻ',       '😄', 'Hà Lan'],
 ];
+
+// ══ US-01: Emotion Picker Modal ══
+let _emotionPickerTarget=null; // {panelIdx, slot: 'char1'|'char2'}
+
+function openEmotionPicker(panelIdx, slot){
+  _emotionPickerTarget={panelIdx,slot};
+  const current = S.panels[panelIdx][slot]||'none';
+  const modal = document.getElementById('em-modal');
+  const grid  = document.getElementById('em-grid');
+  document.getElementById('em-search').value='';
+  renderEmGrid('', current);
+  modal.classList.add('open');
+}
+function closeEmotionPicker(){ document.getElementById('em-modal').classList.remove('open'); }
+function renderEmGrid(q, current){
+  const grid=document.getElementById('em-grid');
+  const filtered=CHAR_EMOTIONS.filter(([id,label])=>
+    id==='none'||label.toLowerCase().includes(q.toLowerCase())
+  );
+  // group by character
+  const groups={};
+  filtered.forEach(([id,label,emoji,grp])=>{
+    if(!groups[grp]) groups[grp]=[];
+    groups[grp].push([id,label,emoji]);
+  });
+  grid.innerHTML=Object.entries(groups).map(([grp,items])=>`
+    <div class="em-group-label">${grp==='none'?'':grp}</div>
+    <div class="em-row">
+    ${items.map(([id,label,emoji])=>`
+      <div class="em-card${id===current?' on':''}" onclick="selectEmotion('${id}')" title="${label}">
+        <div class="em-emoji">${emoji}</div>
+        <div class="em-lbl">${label.replace(/^(Dũng|Hà Lan) · /,'')}</div>
+      </div>`).join('')}
+    </div>`).join('');
+}
+function selectEmotion(id){
+  if(!_emotionPickerTarget) return;
+  const {panelIdx,slot}=_emotionPickerTarget;
+  S.panels[panelIdx][slot]=id;
+  render(); snap(); scheduleSave();
+  buildEd();
+  closeEmotionPicker();
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const m=document.getElementById('em-modal');
+  if(m) m.addEventListener('click',e=>{if(e.target===m)closeEmotionPicker();});
+});
+
+// ══ CHAR + BG OPTIONS — kept for select fallback ══
+const CHARS=CHAR_EMOTIONS;
 const BGS=[
   ['bg-plain','— Trơn —'],['bg-cafe','Quán cà phê'],
   ['bg-street','Phố / đường'],['bg-park','Công viên'],
@@ -1122,6 +1229,22 @@ function cOpts(sel){return CHARS.map(([v,l])=>`<option value="${v}"${sel===v?' s
 function bgOpts(sel){return BGS.map(([v,l])=>`<option value="${v}"${sel===v?' selected':''}>${l}</option>`).join('');}
 function bpOpts(sel){return BPOS.map(([v,l])=>`<option value="${v}"${sel===v?' selected':''}>${l}</option>`).join('');}
 
+// Emotion card helper: renders a compact button with emoji + name
+function emBtn(panelIdx, slot, curId){
+  const found=CHAR_EMOTIONS.find(([id])=>id===curId)||CHAR_EMOTIONS[0];
+  return `<div class="em-btn" onclick="openEmotionPicker(${panelIdx},'${slot}')" title="Đổi biểu cảm">
+    <span>${found[2]}</span> <span style="flex:1;font-size:9px;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${found[1].replace(/^(Dũng|Hà Lan) · /,'')}</span>
+    <span style="color:#444;font-size:9px">▾</span>
+  </div>`;
+}
+
+// US-20/21/23 bubble type options
+const BTYPES=[
+  ['speech','💬 Speech'],['thought','💭 Thought'],
+  ['whisper','🤫 Whisper'],['shout','📣 Shout'],['narrator','📝 Narrator'],
+];
+function btOpts(sel='speech'){return BTYPES.map(([v,l])=>`<option value="${v}"${(sel||'speech')===v?' selected':''}>${l}</option>`).join('');}
+
 // ══ BUILD EDITORS (US-13 context menu + US-14 drag handles) ══
 function buildEd(){
   const wrap=document.getElementById('pw');
@@ -1132,45 +1255,100 @@ function buildEd(){
     d.className='ped';
     d.draggable=true;
     d.dataset.idx=i;
+    const sc1=p.scale1||100, sc2=p.scale2||100;
+    const sfx=p.sfx||'';
     d.innerHTML=`
     <h4 style="display:flex;align-items:center;gap:5px;cursor:context-menu" oncontextmenu="showCtxMenu(event,${i})">
       <span class="drag-handle" title="Kéo để đổi thứ tự">⠿</span>
       Panel ${i+1}
       <span style="margin-left:auto;cursor:pointer;color:#333;font-size:11px" onclick="showCtxMenu(event,${i})" title="Tùy chọn panel">⋯</span>
     </h4>
-    <div class="r2">
-      <div class="f"><label>NV trái/giữa</label><select onchange="S.panels[${i}].char1=this.value;render();snap();scheduleSave()">${cOpts(p.char1)}</select></div>
-      <div class="f"><label>NV phải</label><select onchange="S.panels[${i}].char2=this.value;render();snap();scheduleSave()">${cOpts(p.char2)}</select></div>
+
+    <!-- US-01 EMOTION PICKER + US-04 SCALE + US-08 GROUP SHOT -->
+    <div class="f"><label>Nhân vật & Biểu cảm</label>
+      <div style="display:grid;grid-template-columns:1fr auto;gap:3px;margin-bottom:3px;align-items:center">
+        ${emBtn(i,'char1',p.char1)}
+        <div style="display:flex;align-items:center;gap:3px;font-size:9px;color:#555;white-space:nowrap">
+          <span>Scale</span>
+          <input type="range" min="50" max="150" value="${sc1}" style="width:52px;padding:0;background:0;border:0"
+            oninput="S.panels[${i}].scale1=+this.value;this.nextSibling.textContent=this.value+'%';render()"
+          ><span style="width:26px;font-size:9px;color:#666">${sc1}%</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr auto;gap:3px;margin-bottom:3px;align-items:center">
+        ${emBtn(i,'char2',p.char2)}
+        <div style="display:flex;align-items:center;gap:3px;font-size:9px;color:#555;white-space:nowrap">
+          <span>Scale</span>
+          <input type="range" min="50" max="150" value="${sc2}" style="width:52px;padding:0;background:0;border:0"
+            oninput="S.panels[${i}].scale2=+this.value;this.nextSibling.textContent=this.value+'%';render()"
+          ><span style="width:26px;font-size:9px;color:#666">${sc2}%</span>
+        </div>
+      </div>
+      <!-- US-08: char3 + char4 -->
+      <div class="r2" style="margin-bottom:3px">
+        <div class="f"><label style="font-size:8px;color:#444">NV 3</label><select onchange="S.panels[${i}].char3=this.value;render();snap();scheduleSave()">${cOpts(p.char3||'none')}</select></div>
+        <div class="f"><label style="font-size:8px;color:#444">NV 4</label><select onchange="S.panels[${i}].char4=this.value;render();snap();scheduleSave()">${cOpts(p.char4||'none')}</select></div>
+      </div>
     </div>
+
     <div class="f"><label>Background</label><select onchange="S.panels[${i}].bg=this.value;render();snap();scheduleSave()">${bgOpts(p.bg||'bg-plain')}</select></div>
+
+    <!-- BUBBLE 1 — US-19 position + US-20/21/23 type + shape -->
     <div class="f"><label>Bubble 1</label>
       <div class="r2" style="margin-bottom:3px">
-        <div class="f"><label style="font-size:8px;color:#555">Vị trí</label><select onchange="S.panels[${i}].b1.pos=this.value;render()">${bpOpts(p.b1.pos)}</select></div>
+        <div class="f"><label style="font-size:8px;color:#555">Loại</label>
+          <select onchange="S.panels[${i}].b1.type=this.value;render()">${btOpts(p.b1.type)}</select></div>
+        <div class="f"><label style="font-size:8px;color:#555">Vị trí</label>
+          <select onchange="S.panels[${i}].b1.pos=this.value;render()">${bpOpts(p.b1.pos)}</select></div>
         <div class="f"><label style="font-size:8px;color:#555">Shape</label>
           <select onchange="S.panels[${i}].b1.shape=this.value;render()">
-            <option value="">— Global —</option>
-            <option value="oval"${(p.b1.shape==='oval')?' selected':''}>⬭ Oval</option>
-            <option value="rect"${(p.b1.shape==='rect')?' selected':''}>▭ Rect</option>
-            <option value="cloud"${(p.b1.shape==='cloud')?' selected':''}>☁ Cloud</option>
-            <option value="shout"${(p.b1.shape==='shout')?' selected':''}>⚡ Shout</option>
+            <option value="">Global</option>
+            <option value="oval"${(p.b1.shape==='oval')?' selected':''}>⬭</option>
+            <option value="rect"${(p.b1.shape==='rect')?' selected':''}>▭</option>
+            <option value="cloud"${(p.b1.shape==='cloud')?' selected':''}>☁</option>
+            <option value="shout"${(p.b1.shape==='shout')?' selected':''}>⚡</option>
           </select></div>
       </div>
       <textarea oninput="S.panels[${i}].b1.text=this.value;render();snap();scheduleSave()">${p.b1.text}</textarea>
     </div>
+
+    <!-- BUBBLE 2 -->
     <div class="f"><label>Bubble 2</label>
       <div class="r2" style="margin-bottom:3px">
-        <div class="f"><label style="font-size:8px;color:#555">Vị trí</label><select onchange="S.panels[${i}].b2.pos=this.value;render()">${bpOpts(p.b2.pos)}</select></div>
+        <div class="f"><label style="font-size:8px;color:#555">Loại</label>
+          <select onchange="S.panels[${i}].b2.type=this.value;render()">${btOpts(p.b2.type)}</select></div>
+        <div class="f"><label style="font-size:8px;color:#555">Vị trí</label>
+          <select onchange="S.panels[${i}].b2.pos=this.value;render()">${bpOpts(p.b2.pos)}</select></div>
         <div class="f"><label style="font-size:8px;color:#555">Shape</label>
           <select onchange="S.panels[${i}].b2.shape=this.value;render()">
-            <option value="">— Global —</option>
-            <option value="oval"${(p.b2.shape==='oval')?' selected':''}>⬭ Oval</option>
-            <option value="rect"${(p.b2.shape==='rect')?' selected':''}>▭ Rect</option>
-            <option value="cloud"${(p.b2.shape==='cloud')?' selected':''}>☁ Cloud</option>
-            <option value="shout"${(p.b2.shape==='shout')?' selected':''}>⚡ Shout</option>
+            <option value="">Global</option>
+            <option value="oval"${(p.b2.shape==='oval')?' selected':''}>⬭</option>
+            <option value="rect"${(p.b2.shape==='rect')?' selected':''}>▭</option>
+            <option value="cloud"${(p.b2.shape==='cloud')?' selected':''}>☁</option>
+            <option value="shout"${(p.b2.shape==='shout')?' selected':''}>⚡</option>
           </select></div>
       </div>
       <textarea oninput="S.panels[${i}].b2.text=this.value;render();snap();scheduleSave()">${p.b2.text}</textarea>
     </div>
+
+    <!-- US-22 SFX TEXT -->
+    <div class="f"><label>SFX Text ⚡ <span style="color:#444;font-weight:400">(kéo tự do trên panel)</span></label>
+      <div class="r2" style="margin-bottom:3px">
+        <div class="f"><textarea style="min-height:28px" placeholder="BÌNH! / UGH / wow…"
+          oninput="S.panels[${i}].sfx=this.value;render();snap();scheduleSave()">${sfx}</textarea></div>
+        <div class="f" style="max-width:80px">
+          <label style="font-size:8px;color:#555">Xoay°</label>
+          <input type="range" min="-45" max="45" value="${p.sfxRot||0}" style="padding:0;background:0;border:0;width:100%"
+            oninput="S.panels[${i}].sfxRot=+this.value;render()">
+          <select onchange="S.panels[${i}].sfxStyle=this.value;render()" style="margin-top:2px">
+            <option value="action"${(p.sfxStyle||'action')==='action'?' selected':''}>Action</option>
+            <option value="cute"${(p.sfxStyle==='cute')?' selected':''}>Cute</option>
+            <option value="horror"${(p.sfxStyle==='horror')?' selected':''}>Horror</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
     <div class="f"><label>Caption</label>
       <textarea oninput="S.panels[${i}].caption=this.value;render();snap();scheduleSave()">${p.caption}</textarea>
     </div>`;
@@ -1299,13 +1477,21 @@ function mkFtr(W,H,f){
 // ══ PANEL ══
 function mkPanel(px,py,pW,pH,panel,font){
   const bg=S.bgColor;
-  // caption height
+
+  // ── narrator box height (US-23) ──
+  const hasNarr1=(panel.b1?.type==='narrator'&&panel.b1?.text?.trim());
+  const hasNarr2=(panel.b2?.type==='narrator'&&panel.b2?.text?.trim());
+  const narrFS=Math.round(S.fontSize*.62);
+  const narrH1=hasNarr1 ? wrapL(panel.b1.text,pW-24,narrFS).length*narrFS*1.4+12 : 0;
+  const narrH2=hasNarr2 ? wrapL(panel.b2.text,pW-24,narrFS).length*narrFS*1.4+12 : 0;
+
+  // ── caption height ──
   const capLines=panel.caption&&panel.caption.trim() ? wrapL(panel.caption,pW-48,S.fontSize*.7) : [];
   const capH=capLines.length ? capLines.length*Math.round(S.fontSize*.78)+18 : 0;
-  const charZoneH=pH-capH;
+  const charZoneH=pH-capH-narrH1-narrH2;
 
-  // ── background scene (clipped to panel) ──
-  const clipId=`clip-${px}-${py}`.replace(/\./g,'_');
+  // ── background ──
+  const clipId=`clip-${Math.round(px)}-${Math.round(py)}`;
   const bgId=panel.bg&&panel.bg!=='bg-plain'?panel.bg:null;
   let bgSVG='';
   if(bgId){
@@ -1313,23 +1499,51 @@ function mkPanel(px,py,pW,pH,panel,font){
 <use href="#${bgId}" x="${px}" y="${py}" width="${pW}" height="${charZoneH}" clip-path="url(#${clipId})"/>`;
   }
 
-  // ── characters ──
-  const has2=panel.char1&&panel.char1!=='none'&&panel.char2&&panel.char2!=='none';
+  // ── characters (US-08: up to 4) ──
+  const chars=[panel.char1,panel.char2,panel.char3,panel.char4].filter(c=>c&&c!=='none');
+  const scales=[panel.scale1||100,panel.scale2||100,100,100];
+  const cxPositions=chars.length<=1?[.5]:chars.length===2?[.28,.72]:chars.length===3?[.2,.5,.8]:[.15,.38,.62,.85];
   let charSVG='';
-  if(panel.char1&&panel.char1!=='none'){
-    const cx=has2 ? px+pW*.3 : px+pW*.5;
-    charSVG+=placeChar(panel.char1,cx,py,pW,charZoneH,has2?'left':'center');
-  }
-  if(panel.char2&&panel.char2!=='none'){
-    charSVG+=placeChar(panel.char2,px+pW*.72,py,pW,charZoneH,'right');
-  }
+  chars.forEach((cid,ci)=>{
+    charSVG+=placeChar(cid, px+pW*cxPositions[ci], py, pW, charZoneH, scales[ci]/100, chars.length);
+  });
 
-  // ── bubbles with flexible positioning ──
+  // ── bubbles ──
   let bubSVG='';
-  if(panel.b1&&panel.b1.text&&panel.b1.text.trim())
-    bubSVG+=mkBubble(panel.b1.text,panel.b1.pos||'top-left',px,py,pW,charZoneH,font,panel.b1.shape||'');
-  if(panel.b2&&panel.b2.text&&panel.b2.text.trim())
-    bubSVG+=mkBubble(panel.b2.text,panel.b2.pos||'top-right',px,py,pW,charZoneH,font,panel.b2.shape||'');
+  const narrs=[];
+  [panel.b1,panel.b2].forEach(b=>{
+    if(!b?.text?.trim()) return;
+    if(b.type==='narrator') narrs.push(b);
+    else bubSVG+=mkBubble(b.text, b.pos||'top-left', px, py, pW, charZoneH, font, b.shape||'', b.type||'speech');
+  });
+
+  // ── narrator boxes (US-23) ──
+  let narrSVG='';
+  let narrY=py+narrH1?py:py; // top narrator
+  narrs.forEach((b,ni)=>{
+    const ny=ni===0?py:py+pH-narrH2;
+    const nLines=wrapL(b.text,pW-24,narrFS);
+    const nH=nLines.length*narrFS*1.4+12;
+    narrSVG+=`<rect x="${px}" y="${ny}" width="${pW}" height="${nH}" fill="#1E1810" opacity=".88"/>`;
+    nLines.forEach((ln,li)=>{
+      narrSVG+=`<text x="${px+pW/2}" y="${ny+8+li*narrFS*1.4+narrFS}" font-family="${font}" font-size="${narrFS}"
+fill="#F2ECD8" text-anchor="middle">${esc(ln)}</text>`;
+    });
+  });
+
+  // ── SFX text (US-22) ──
+  let sfxSVG='';
+  if(panel.sfx&&panel.sfx.trim()){
+    const sfxX=px+pW*0.5, sfxY=py+charZoneH*0.45;
+    const rot=panel.sfxRot||0;
+    const sty=panel.sfxStyle||'action';
+    const sfxFill=sty==='action'?'#C85C3E':sty==='cute'?'#F08080':'#2C2416';
+    const sfxStroke=sty==='horror'?'#8B0000':'#2C2416';
+    const sfxFS=Math.round(S.fontSize*1.6);
+    sfxSVG=`<text x="${sfxX}" y="${sfxY}" font-family="${font}" font-size="${sfxFS}" font-weight="900"
+font-style="italic" fill="${sfxFill}" stroke="${sfxStroke}" stroke-width="3" paint-order="stroke"
+text-anchor="middle" transform="rotate(${rot},${sfxX},${sfxY})">${esc(panel.sfx)}</text>`;
+  }
 
   // ── caption strip ──
   let capSVG='';
@@ -1348,37 +1562,42 @@ font-style="${note?'italic':'normal'}" fill="${note?'#C66A4A':'#2C2416'}" text-a
 
   return `<g>
 <rect x="${px}" y="${py}" width="${pW}" height="${pH}" fill="${bg}" rx="2"/>
-${bgSVG}
-${charSVG}
-${bubSVG}
-${capSVG}
+${bgSVG}${charSVG}${sfxSVG}${bubSVG}${narrSVG}${capSVG}
 <rect x="${px}" y="${py}" width="${pW}" height="${pH}" fill="none" stroke="#2C2416" stroke-width="4" rx="2"/>
 </g>`;
 }
 
-// ══ CHAR PLACEMENT ══
-// Symbol viewBox "-60 -80 120 160" → natural 120w × 160h
-// We size the character to fill ~75% of charZoneH and anchor feet at ~90% of zone
-function placeChar(id,cx,panelY,pW,charZoneH,align){
-  const dW=120,dH=160;
-  // scale to fit height & width
-  const maxH=charZoneH*0.78;
-  const maxW=pW*(align==='center'?0.55:0.44);
-  const sc=Math.min(maxH/dH, maxW/dW);
+// ══ CHAR PLACEMENT (US-04 scale, US-08 group) ══
+// scaleMul: 0.5–1.5 from slider; nChars: total chars in panel
+function placeChar(id, cx, panelY, pW, charZoneH, scaleMul, nChars){
+  const dW=120, dH=160;
+  const slotW = pW / Math.max(nChars, 1);
+  const maxH = charZoneH * 0.80;
+  const maxW = slotW * (nChars===1 ? 0.6 : 0.52);
+  let sc = Math.min(maxH/dH, maxW/dW) * (scaleMul||1);
+  // if scale > 1.2 we allow clipping top but keep feet anchored
   const cw=dW*sc, ch=dH*sc;
-  // anchor bottom of character at 90% of zone
-  const y=panelY+charZoneH*0.90-ch;
+  const y=panelY+charZoneH*0.92-ch;
   const x=cx-cw/2;
   return `<use href="#${id}" x="${x}" y="${y}" width="${cw}" height="${ch}"/>`;
 }
 
-// ══ BUBBLE ENGINE ══
-// Supports: oval (ellipse) · rect (rounded rect) · cloud · shout (spike)
-// pos: top-left / top-center / top-right / bottom-left / bottom-center / bottom-right
-function mkBubble(text,pos,px,py,pW,charZoneH,font,shapeOverride){
-  const fSz = S.fontSize;
+// ══ BUBBLE ENGINE (US-19/20/21 types) ══
+function mkBubble(text,pos,px,py,pW,charZoneH,font,shapeOverride,bubType){
+  // US-20/21: override shape based on type
+  const type=bubType||'speech';
+  let shape=shapeOverride||S.bubbleShape||'oval';
+  if(type==='thought') shape='cloud';
+  if(type==='shout')   shape='shout';
+
+  // US-21: whisper = font -20%, dashed border, lighter fill
+  const isWhisper=type==='whisper';
+  // US-21: shout = font +20%
+  const isShout=type==='shout';
+
+  const fSzBase = S.fontSize * (isWhisper?.8:isShout?1.2:1);
+  const fSz = autoFitFontSize(text, Math.min(pW*.6,pW-36)*(S.bubbleScale||1), shape==='oval'?fSzBase*.9:14, fSzBase);
   const sc  = S.bubbleScale || 1;
-  const shape = shapeOverride || S.bubbleShape || 'oval';
   const margin = 18;
 
   // ── text layout ──
@@ -1430,11 +1649,18 @@ function mkBubble(text,pos,px,py,pW,charZoneH,font,shapeOverride){
   const cy = by + bh/2;       // bubble vertical center
   const sw = 2.8;              // stroke width
 
+  // ── US-21 whisper/shout styling ──
+  const bubFill   = isWhisper ? '#F5F5F0' : '#FBF8E8';
+  const bubStroke = isWhisper ? '#8A8078' : '#2C2416';
+  const bubDash   = isWhisper ? 'stroke-dasharray="6,3"' : '';
+  const textFill  = isWhisper ? '#7A7068' : '#2C2416';
+  const textW     = isShout   ? '900' : '700';
+
   // ── text rows ──
   const textY0 = by + padY + fSz * 0.92;
   const textRows = lines.map((l,i)=>
     `<text x="${cx}" y="${textY0+i*lh}" font-family="${font}" font-size="${fSz}"
-font-weight="700" fill="#2C2416" text-anchor="middle" dominant-baseline="auto">${esc(l)}</text>`
+font-weight="${textW}" fill="${textFill}" text-anchor="middle">${esc(l)}</text>`
   ).join('');
 
   // ── shape SVG ──
@@ -1466,7 +1692,7 @@ font-weight="700" fill="#2C2416" text-anchor="middle" dominant-baseline="auto">$
     }
     shapeSVG=`${tailSVG}
 <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"
-  fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}"/>`;
+  fill="${bubFill}" stroke="${bubStroke}" stroke-width="${sw}" ${bubDash}/>`;
   }
 
   else if(shape==='rect'){
@@ -1597,6 +1823,45 @@ document.getElementById('btn-exp').addEventListener('click',async()=>{
     setTimeout(()=>{btn.textContent='⬇ Export PNG';btn.disabled=false;},2200);
   }catch(e){btn.textContent='⚠ Lỗi';hint.textContent=e.message;setTimeout(()=>{btn.textContent='⬇ Export PNG';btn.disabled=false;},2500);}
 });
+
+// ══ US-49: DARK MODE ══
+function toggleDark(){
+  document.body.classList.toggle('dark');
+  const btn=document.getElementById('btn-dark');
+  const isDark=document.body.classList.contains('dark');
+  if(btn) btn.textContent=isDark?'☀️':'🌙';
+  localStorage.setItem('dreamers-dark',isDark?'1':'');
+}
+// auto-detect system preference on first load
+if(window.matchMedia('(prefers-color-scheme: dark)').matches||localStorage.getItem('dreamers-dark')){
+  document.body.classList.add('dark');
+}
+
+// ══ US-17: WEBTOON VERTICAL STRIP EXPORT ══
+async function exportWebtoon(){
+  const btn=document.getElementById('btn-dark');
+  const hint=document.getElementById('hint');
+  hint.textContent='Đang tạo webtoon strip…';
+  // Render 1-column vertical version regardless of current layout
+  const origLayout=S.layout, origSize=S.size;
+  S.layout='1x'+cnt(); S.size='portrait';
+  render();
+  await new Promise(r=>setTimeout(r,200));
+  try{
+    const svgEl=document.querySelector('#cw svg');
+    const {W}=SZ[S.size];
+    const sc=W/svgEl.clientWidth;
+    const url=await htmlToImage.toPng(svgEl,{cacheBust:true,pixelRatio:sc,backgroundColor:'#F2ECD8',style:{borderRadius:'0',boxShadow:'none'}});
+    const a=document.createElement('a');
+    a.href=url;a.download=`${S.title.toLowerCase().replace(/[^a-z0-9]/g,'-')}-webtoon.png`;
+    document.body.appendChild(a);a.click();a.remove();
+    hint.textContent='✓ Webtoon exported';
+  }catch(e){ hint.textContent='⚠ '+e.message; }
+  // restore
+  S.layout=origLayout; S.size=origSize;
+  render();
+  setTimeout(()=>{hint.textContent='';},2000);
+}
 
 // ══ US-46: KEYBOARD SHORTCUTS ══
 document.addEventListener('keydown',e=>{
