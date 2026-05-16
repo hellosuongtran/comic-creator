@@ -6,26 +6,207 @@
 <title>Comic Creator — Dũng & Hà Lan</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Bangers&family=Caveat:wght@400;700&family=Pangolin&family=Be+Vietnam+Pro:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Patrick+Hand&family=Bangers&family=Caveat:wght@400;700&family=Pangolin&family=Be+Vietnam+Pro:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
 <style>
-:root{--ink:#2C2416;--beige:#F2ECD8;--coral:#E08160;--sage:#7A9A78}
+/* ── DESIGN TOKENS — LIGHT MODE ── */
+:root{
+  --bg:#F5F0E8;--surface:#FDFAF5;--surface2:#EDE8DF;--border:#D8D0C4;
+  --coral:#E08160;--coral-dim:#C85C3E;--sage:#5A8A58;
+  --text:#2C2416;--text-2:#6B5E50;--text-3:#A0907E;
+  --ink:#2C2416;--beige:#F2ECD8;
+  --rail-w:72px;--left-w:320px;--right-w:360px;--topbar-h:56px;--strip-h:88px;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',sans-serif;background:#111;color:#ddd;display:flex;height:100vh;overflow:hidden}
-#ed{width:310px;min-width:310px;background:#181818;padding:12px;overflow-y:auto;border-right:1px solid #222;display:flex;flex-direction:column;gap:7px}
-#ed h1{font-size:13px;font-weight:800;color:#fff}
-#ed .sub{font-size:9px;color:#444}
-.sec{background:#1f1f1f;border-radius:6px;padding:9px;border:1px solid #262626}
-.sec h3{font-size:9px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
+
+/* ── APP GRID ── */
+.app{
+  height:100vh;display:grid;
+  grid-template-rows:var(--topbar-h) 1fr var(--strip-h);
+  grid-template-columns:var(--rail-w) var(--left-w) 1fr var(--right-w);
+  grid-template-areas:
+    "topbar topbar topbar topbar"
+    "rail   left   canvas right"
+    "rail   panels panels panels";
+}
+
+/* ── TOPBAR ── */
+.topbar{
+  grid-area:topbar;display:flex;align-items:center;gap:8px;
+  padding:0 16px;background:var(--surface);border-bottom:1px solid var(--border);
+  z-index:10;
+}
+.topbar-logo{
+  width:32px;height:32px;border-radius:6px;background:var(--coral);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:15px;color:#fff;flex-shrink:0;letter-spacing:-.5px;
+}
+.topbar-bread{font-size:13px;color:var(--text-2);display:flex;align-items:center;gap:6px}
+.topbar-bread span{color:var(--text)}
+.topbar-sep{width:1px;height:18px;background:var(--border);margin:0 4px}
+.topbar-center{flex:1;display:flex;align-items:center;justify-content:center;gap:4px}
+.topbar-right{display:flex;align-items:center;gap:6px;margin-left:auto}
+.tb-btn{
+  background:var(--surface2);border:1px solid var(--border);color:var(--text-2);
+  border-radius:5px;padding:5px 10px;font-size:12px;font-weight:500;cursor:pointer;
+  transition:all .12s;font-family:inherit;display:inline-flex;align-items:center;gap:4px;
+}
+.tb-btn:hover:not(:disabled){background:var(--border);color:var(--text)}
+.tb-btn:disabled{opacity:.35;cursor:default}
+.tb-btn.active{color:var(--coral)}
+.tb-btn-icon{padding:5px 8px}
+.tb-export{background:var(--coral);color:#fff;border-color:var(--coral)}
+.tb-export:hover{background:var(--coral-dim);border-color:var(--coral-dim);opacity:1}
+.tb-avatar{width:28px;height:28px;border-radius:50%;background:var(--sage);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+
+/* ── LEFT RAIL ── */
+.rail{
+  grid-area:rail;background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px;
+  z-index:5;
+}
+.rail-btn{
+  width:44px;height:44px;border-radius:8px;border:none;background:none;
+  color:var(--text-3);cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;transition:all .12s;
+  position:relative;font-size:18px;
+}
+.rail-btn:hover{background:var(--surface2);color:var(--text-2)}
+.rail-btn.active{color:var(--coral);background:var(--surface2)}
+.rail-btn.active::before{
+  content:'';position:absolute;left:0;top:12px;bottom:12px;
+  width:3px;border-radius:0 2px 2px 0;background:var(--coral);
+}
+.rail-btn span{font-size:9px;font-weight:600;letter-spacing:.3px;line-height:1}
+.rail-spacer{flex:1}
+
+/* ── LEFT PANEL (editor) ── */
+.left-panel{
+  grid-area:left;background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.left-panel-inner{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:7px}
+.left-panel-inner::-webkit-scrollbar{width:3px}
+.left-panel-inner::-webkit-scrollbar-track{background:var(--bg)}
+.left-panel-inner::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ── CANVAS ZONE ── */
+.canvas-wrap{
+  grid-area:canvas;
+  background:radial-gradient(ellipse at 50% 40%,#1e1a14 0%,var(--bg) 100%);
+  display:flex;align-items:center;justify-content:center;overflow:auto;position:relative;
+}
+.canvas-toolbar{
+  position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  display:flex;align-items:center;gap:2px;padding:4px 8px;z-index:20;
+  white-space:nowrap;
+}
+
+/* ── RIGHT PANEL ── */
+.right-panel{
+  grid-area:right;background:var(--surface);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.rp-header{padding:10px 12px 0;border-bottom:1px solid var(--border);flex-shrink:0}
+.rp-title-row{display:flex;align-items:baseline;gap:6px;margin-bottom:8px}
+.rp-title{font-size:14px;font-weight:700;color:var(--text)}
+.rp-meta{font-size:10px;color:var(--text-3);margin-left:auto}
+.rp-tabs{display:flex;gap:0}
+.rp-tab{padding:5px 12px;font-size:11px;font-weight:600;color:var(--text-3);
+  border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;
+  font-family:inherit;transition:all .1s;margin-bottom:-1px}
+.rp-tab:hover{color:var(--text-2)}
+.rp-tab.active{color:var(--coral);border-bottom-color:var(--coral)}
+.rp-body{flex:1;overflow-y:auto;padding:10px 12px}
+.rp-body::-webkit-scrollbar{width:3px}
+.rp-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.rp-section-label{font-size:10px;font-weight:700;color:var(--text-3);
+  text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;margin-top:10px}
+.rp-section-label:first-child{margin-top:0}
+.bg-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.bg-card{background:var(--surface2);border:2px solid var(--border);border-radius:6px;
+  cursor:pointer;overflow:hidden;transition:all .12s}
+.bg-card:hover{border-color:var(--text-3)}
+.bg-card.active{border-color:var(--coral)}
+.bg-card-thumb{width:100%;height:52px;overflow:hidden}
+.bg-card-label{font-size:10px;font-weight:600;color:var(--text-3);
+  padding:3px 6px 4px;text-align:center}
+.bg-card.active .bg-card-label{color:var(--coral)}
+.bubble-section{background:var(--surface2);border:1px solid var(--border);
+  border-radius:6px;padding:8px;margin-bottom:6px}
+.bubble-section-hdr{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.bubble-section-hdr span{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.6px}
+.bubble-pos-tag{font-size:9px;color:var(--text-3);padding:2px 6px;
+  background:var(--bg);border:1px solid var(--border);border-radius:999px;margin-left:auto}
+.rp-row{display:flex;gap:6px;margin-bottom:5px;align-items:flex-start}
+.rp-row label{font-size:10px;color:var(--text-3);margin-bottom:2px;display:block}
+.rp-row select,.rp-select{width:100%;background:var(--bg);border:1px solid var(--border);
+  border-radius:4px;color:var(--text-2);padding:4px 6px;font-size:11px;font-family:inherit}
+.rp-row select:focus,.rp-select:focus{outline:none;border-color:var(--coral-dim)}
+.rp-textarea{width:100%;background:var(--bg);border:1px solid var(--border);
+  border-radius:4px;color:var(--text-2);padding:5px 7px;font-size:11px;
+  font-family:inherit;resize:vertical;min-height:44px;line-height:1.4}
+.rp-textarea:focus{outline:none;border-color:var(--coral-dim)}
+.rp-slider-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.rp-slider-row label{font-size:10px;color:var(--text-3);min-width:42px}
+.rp-slider-row input[type=range]{flex:1;padding:0;background:none;border:0;height:18px}
+.rp-slider-val{font-size:10px;color:var(--text-2);min-width:32px;text-align:right}
+
+/* ── PANELS STRIP ── */
+.panels-strip{
+  grid-area:panels;background:var(--bg);border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:0;padding:0;overflow-x:auto;
+}
+.panels-strip::-webkit-scrollbar{height:3px}
+.panels-strip::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.strip-label{
+  flex-shrink:0;font-size:9px;font-weight:700;color:var(--text-3);
+  letter-spacing:1px;text-transform:uppercase;padding:0 10px;
+  writing-mode:vertical-rl;text-orientation:mixed;
+  border-right:1px solid var(--border);height:100%;
+  display:flex;align-items:center;justify-content:center;min-width:28px;
+}
+.strip-thumbs-inner{display:flex;gap:8px;align-items:center;padding:0 10px;flex:1}
+.strip-thumb-card{
+  flex-shrink:0;width:48px;height:60px;border-radius:5px;
+  border:2px solid var(--border);background:var(--surface2);
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:border-color .12s;
+}
+.strip-thumb-card:hover{border-color:var(--text-3)}
+.strip-thumb-card.active{border-color:var(--coral)}
+.strip-thumb-card svg{display:block;width:100%;height:100%}
+.strip-thumb-num{
+  position:absolute;bottom:2px;left:3px;
+  font-size:8px;font-weight:700;color:rgba(255,255,255,.7);
+  line-height:1;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.8);
+}
+.strip-add{
+  flex-shrink:0;width:36px;height:60px;border-radius:5px;
+  border:1.5px dashed var(--border);background:none;color:var(--text-3);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:18px;transition:all .12s;
+}
+.strip-add:hover{border-color:var(--text-2);color:var(--text-2)}
+.strip-actions{margin-left:auto;display:flex;gap:6px;align-items:center;flex-shrink:0;padding-right:10px}
+
+/* legacy editor styles mapped to new tokens */
+#ed{display:contents} /* ed is now inside .left-panel-inner */
+#ed h1{font-size:15px;font-weight:700;color:var(--text)}
+#ed .sub{font-size:10px;color:var(--text-3)}
+.sec{background:var(--surface2);border-radius:6px;padding:9px;border:1px solid var(--border)}
+.sec h3{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px}
 .f{margin-bottom:5px}
-.f label{display:block;font-size:9px;color:#666;margin-bottom:2px}
-.f input,.f textarea,.f select{width:100%;background:#111;border:1px solid #2e2e2e;border-radius:4px;color:#bbb;padding:4px 6px;font-size:10px;font-family:inherit;resize:vertical}
-.f input:focus,.f textarea:focus,.f select:focus{outline:none;border-color:#C85C3E}
+.f label{display:block;font-size:10px;color:var(--text-3);margin-bottom:2px}
+.f input,.f textarea,.f select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 6px;font-size:11px;font-family:inherit;resize:vertical}
+.f input:focus,.f textarea:focus,.f select:focus{outline:none;border-color:var(--coral-dim)}
 .f textarea{min-height:36px;line-height:1.4}
 .r2{display:flex;gap:4px}.r2 .f{flex:1}
 .pills{display:flex;gap:3px;flex-wrap:wrap}
-.pill{padding:3px 7px;border-radius:999px;border:1px solid #2e2e2e;background:#111;color:#555;font-size:9px;cursor:pointer;white-space:nowrap;transition:all .1s}
-.pill.on{border-color:#C85C3E;color:#C85C3E;background:#1e1008}
+.pill{padding:3px 7px;border-radius:999px;border:1px solid var(--border);background:var(--surface2);color:var(--text-3);font-size:10px;cursor:pointer;white-space:nowrap;transition:all .1s}
+.pill.on{border-color:var(--coral-dim);color:var(--coral-dim);background:#1e1008}
 .pill.b.on{border-color:#5B9BD5;color:#5B9BD5;background:#0d1828}
 .sws{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
 .sw{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .1s;flex-shrink:0}
@@ -33,80 +214,72 @@ body{font-family:'Segoe UI',sans-serif;background:#111;color:#ddd;display:flex;h
 .sw-c{position:relative;width:20px;height:20px}
 .sw-c .sw{border-style:dashed;border-color:#444}
 .sw-c input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.ped{background:#161616;border-radius:5px;padding:8px;border:1px solid #1e1e1e;margin-bottom:6px}
-.ped h4{font-size:9px;font-weight:700;color:#C85C3E;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.ped{background:var(--bg);border-radius:5px;padding:8px;border:1px solid var(--border);margin-bottom:6px}
+.ped h4{font-size:10px;font-weight:700;color:var(--coral-dim);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
 .btn{display:inline-flex;align-items:center;gap:3px;padding:6px 12px;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;border:none;transition:opacity .1s;font-family:inherit}
-.btn-p{background:#C85C3E;color:#fff}.btn-s{background:#222;color:#888}
+.btn-p{background:var(--coral-dim);color:#fff}.btn-s{background:var(--surface2);color:var(--text-2)}
 .btn:hover{opacity:.85}.btn:disabled{opacity:.4;cursor:wait}
 .brow{display:flex;gap:5px;flex-wrap:wrap;padding-top:2px}
-#pv{flex:1;display:flex;align-items:center;justify-content:center;background:#0a0a0a;padding:12px;overflow:auto}
+#pv{display:contents} /* pv is now .canvas-wrap */
+#cw{display:flex;align-items:center;justify-content:center}
 #cw svg{display:block;border-radius:2px;box-shadow:0 10px 36px rgba(0,0,0,.85)}
-#ed::-webkit-scrollbar{width:3px}#ed::-webkit-scrollbar-track{background:#111}#ed::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:2px}
 
 /* tooltip */
 [title]{position:relative}
-[title]:hover::after{content:attr(title);position:fixed;background:#1a1a1a;color:#ddd;font-size:10px;padding:4px 8px;border-radius:4px;border:1px solid #333;white-space:nowrap;z-index:999;pointer-events:none;transform:translateX(-50%);margin-top:22px;left:50%}
+[title]:hover::after{content:attr(title);position:fixed;background:var(--text);color:var(--bg);font-size:10px;padding:4px 8px;border-radius:4px;border:1px solid var(--border);white-space:nowrap;z-index:999;pointer-events:none;transform:translateX(-50%);margin-top:22px;left:50%}
 
 /* shape preview pills */
 .pill.shape-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:4px 9px}
 
-/* ── TOOLBAR (undo/redo/save status) ── */
-#toolbar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#141414;border-bottom:1px solid #222;flex-shrink:0}
-#toolbar button{background:#1e1e1e;border:1px solid #2a2a2a;color:#888;border-radius:4px;padding:4px 8px;font-size:10px;cursor:pointer;transition:all .1s;font-family:inherit}
-#toolbar button:hover:not(:disabled){background:#2a2a2a;color:#ccc}
-#toolbar button:disabled{opacity:.3;cursor:default}
-#toolbar button.danger{color:#C85C3E}
-#save-status{font-size:9px;color:#444;margin-left:auto;font-style:italic}
-#save-status.saving{color:#7A9A78}
-#save-status.offline{color:#D4A843}
+/* legacy toolbar — hidden; controls moved to topbar */
+#toolbar{display:none}
 
 /* ── TEMPLATE MODAL ── */
 #tpl-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:1000;align-items:center;justify-content:center}
 #tpl-modal.open{display:flex}
-#tpl-box{background:#1a1a1a;border:1px solid #2e2e2e;border-radius:10px;width:min(780px,95vw);max-height:88vh;overflow:hidden;display:flex;flex-direction:column}
-#tpl-box header{padding:14px 18px;border-bottom:1px solid #222;display:flex;align-items:center;gap:10px}
-#tpl-box header h2{font-size:13px;font-weight:700;color:#fff;flex:1}
-#tpl-box header button{background:#222;border:1px solid #333;color:#888;border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer}
-#tpl-cats{display:flex;gap:5px;padding:10px 18px;border-bottom:1px solid #1e1e1e;flex-wrap:wrap}
+#tpl-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:min(780px,95vw);max-height:88vh;overflow:hidden;display:flex;flex-direction:column}
+#tpl-box header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+#tpl-box header h2{font-size:13px;font-weight:700;color:var(--text);flex:1}
+#tpl-box header button{background:var(--surface2);border:1px solid var(--border);color:var(--text-2);border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer}
+#tpl-cats{display:flex;gap:5px;padding:10px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap}
 #tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;padding:14px 18px;overflow-y:auto;flex:1}
-.tpl-card{background:#222;border:1px solid #2a2a2a;border-radius:6px;padding:10px;cursor:pointer;transition:all .12s;position:relative}
-.tpl-card:hover{border-color:#C85C3E;background:#1e1008}
-.tpl-card .tpl-thumb{width:100%;aspect-ratio:1/1.2;background:#2a2a2a;border-radius:4px;margin-bottom:7px;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden}
-.tpl-card .tpl-name{font-size:10px;font-weight:700;color:#ccc}
-.tpl-card .tpl-desc{font-size:9px;color:#555;margin-top:2px;line-height:1.3}
-.tpl-card .tpl-tag{position:absolute;top:6px;right:6px;font-size:8px;padding:2px 5px;border-radius:999px;background:#C85C3E;color:#fff}
+.tpl-card{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px;cursor:pointer;transition:all .12s;position:relative}
+.tpl-card:hover{border-color:var(--coral-dim);background:#1e1008}
+.tpl-card .tpl-thumb{width:100%;aspect-ratio:1/1.2;background:var(--border);border-radius:4px;margin-bottom:7px;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden}
+.tpl-card .tpl-name{font-size:10px;font-weight:700;color:var(--text-2)}
+.tpl-card .tpl-desc{font-size:9px;color:var(--text-3);margin-top:2px;line-height:1.3}
+.tpl-card .tpl-tag{position:absolute;top:6px;right:6px;font-size:8px;padding:2px 5px;border-radius:999px;background:var(--coral-dim);color:#fff}
 
 /* ── PANEL DRAG-AND-DROP ── */
 .ped.dragging{opacity:.4;border-style:dashed}
-.ped.drag-over{border-color:#C85C3E;background:#1e1008}
-.drag-handle{cursor:grab;color:#333;font-size:13px;margin-right:4px;user-select:none}
+.ped.drag-over{border-color:var(--coral-dim);background:#1e1008}
+.drag-handle{cursor:grab;color:var(--text-3);font-size:13px;margin-right:4px;user-select:none}
 .drag-handle:active{cursor:grabbing}
 
 /* ── PANEL CONTEXT MENU ── */
-#ctx-menu{display:none;position:fixed;background:#1a1a1a;border:1px solid #2e2e2e;border-radius:6px;padding:4px;z-index:500;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+#ctx-menu{display:none;position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px;z-index:500;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.6)}
 #ctx-menu.open{display:block}
-#ctx-menu button{display:flex;align-items:center;gap:7px;width:100%;background:none;border:none;color:#bbb;padding:6px 10px;font-size:10px;cursor:pointer;border-radius:4px;text-align:left;font-family:inherit}
-#ctx-menu button:hover{background:#2a2a2a;color:#fff}
-#ctx-menu .ctx-sep{height:1px;background:#222;margin:3px 0}
+#ctx-menu button{display:flex;align-items:center;gap:7px;width:100%;background:none;border:none;color:var(--text-2);padding:6px 10px;font-size:10px;cursor:pointer;border-radius:4px;text-align:left;font-family:inherit}
+#ctx-menu button:hover{background:var(--surface2);color:var(--text)}
+#ctx-menu .ctx-sep{height:1px;background:var(--border);margin:3px 0}
 
 /* ── EMOTION PICKER ── */
 #em-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:1001;align-items:center;justify-content:center}
 #em-modal.open{display:flex}
-#em-box{background:#1a1a1a;border:1px solid #2e2e2e;border-radius:10px;width:min(540px,95vw);max-height:80vh;display:flex;flex-direction:column}
-#em-box header{padding:12px 16px;border-bottom:1px solid #222;display:flex;gap:8px;align-items:center}
-#em-box header h2{font-size:12px;font-weight:700;color:#fff;flex:1}
-#em-search{flex:1;background:#111;border:1px solid #333;border-radius:4px;color:#ccc;padding:4px 8px;font-size:11px;font-family:inherit}
+#em-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:min(540px,95vw);max-height:80vh;display:flex;flex-direction:column}
+#em-box header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center}
+#em-box header h2{font-size:12px;font-weight:700;color:var(--text);flex:1}
+#em-search{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text-2);padding:4px 8px;font-size:11px;font-family:inherit}
 #em-grid{overflow-y:auto;padding:10px 14px;flex:1}
-.em-group-label{font-size:9px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.6px;margin:8px 0 4px;padding-bottom:3px;border-bottom:1px solid #1e1e1e}
+.em-group-label{font-size:9px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.6px;margin:8px 0 4px;padding-bottom:3px;border-bottom:1px solid var(--border)}
 .em-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
-.em-card{background:#222;border:1px solid #2a2a2a;border-radius:6px;padding:7px 8px;cursor:pointer;transition:all .1s;text-align:center;min-width:70px}
-.em-card:hover{border-color:#C85C3E;background:#1e1008}
-.em-card.on{border-color:#C85C3E;background:#1e1008}
+.em-card{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 8px;cursor:pointer;transition:all .1s;text-align:center;min-width:70px}
+.em-card:hover{border-color:var(--coral-dim);background:#1e1008}
+.em-card.on{border-color:var(--coral-dim);background:#1e1008}
 .em-emoji{font-size:22px;line-height:1;margin-bottom:3px}
-.em-lbl{font-size:8px;color:#888;line-height:1.2}
-/* emotion button in panel editor */
-.em-btn{display:flex;align-items:center;gap:5px;background:#111;border:1px solid #2e2e2e;border-radius:4px;padding:4px 7px;cursor:pointer;font-size:10px;color:#bbb;transition:all .1s;width:100%}
-.em-btn:hover{border-color:#C85C3E;color:#C85C3E}
+.em-lbl{font-size:8px;color:var(--text-3);line-height:1.2}
+.em-btn{display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 7px;cursor:pointer;font-size:10px;color:var(--text-2);transition:all .1s;width:100%}
+.em-btn:hover{border-color:var(--coral-dim);color:var(--coral-dim)}
 
 /* ── SFX STYLES ── */
 .sfx-action{font-weight:900;font-style:italic;fill:#C85C3E;stroke:#2C2416;stroke-width:3;paint-order:stroke}
@@ -116,63 +289,106 @@ body{font-family:'Segoe UI',sans-serif;background:#111;color:#ddd;display:flex;h
 /* ── NARRATOR BOX ── */
 /* rendered in SVG, no extra CSS needed */
 
-/* ── AI MODAL (US-26/27/28/30) ── */
+/* ── AI MODAL ── */
 #ai-modal,#series-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1002;align-items:center;justify-content:center}
 #ai-modal.open,#series-modal.open{display:flex}
-#ai-box,#series-box{background:#1a1a1a;border:1px solid #2e2e2e;border-radius:10px;width:min(560px,95vw);max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
-.ai-tab{background:#1e1e1e;border:1px solid #2a2a2a;color:#666;border-radius:4px;padding:4px 10px;font-size:9px;cursor:pointer;transition:all .1s;font-family:inherit}
-.ai-tab.on{border-color:#C85C3E;color:#C85C3E;background:#1e1008}
+#ai-box,#series-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:min(560px,95vw);max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
+.ai-tab{background:var(--surface2);border:1px solid var(--border);color:var(--text-3);border-radius:4px;padding:4px 10px;font-size:9px;cursor:pointer;transition:all .1s;font-family:inherit}
+.ai-tab.on{border-color:var(--coral-dim);color:var(--coral-dim);background:#1e1008}
 .ai-pane{overflow-y:auto}
-/* AI result cards */
-.ai-card{background:#222;border:1px solid #2a2a2a;border-radius:6px;padding:10px 12px;margin-bottom:8px}
-.ai-card h5{font-size:10px;font-weight:700;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
-.ai-card p{font-size:11px;color:#ccc;line-height:1.5;margin-bottom:6px}
-.ai-card button{background:#C85C3E;color:#fff;border:none;border-radius:4px;padding:4px 10px;font-size:9px;cursor:pointer;font-family:inherit}
+.ai-card{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:8px}
+.ai-card h5{font-size:10px;font-weight:700;color:var(--text-2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.ai-card p{font-size:11px;color:var(--text-2);line-height:1.5;margin-bottom:6px}
+.ai-card button{background:var(--coral-dim);color:#fff;border:none;border-radius:4px;padding:4px 10px;font-size:9px;cursor:pointer;font-family:inherit}
 .ai-card button:hover{opacity:.85}
-/* autocomplete dropdown (US-27) */
-#ac-dropdown{display:none;position:absolute;background:#1a1a1a;border:1px solid #2e2e2e;border-radius:6px;z-index:600;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,.7)}
+#ac-dropdown{display:none;position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:6px;z-index:600;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,.7)}
 #ac-dropdown.open{display:block}
-.ac-item{padding:7px 12px;font-size:11px;color:#bbb;cursor:pointer;border-bottom:1px solid #1e1e1e}
-.ac-item:hover{background:#222;color:#fff}
+.ac-item{padding:7px 12px;font-size:11px;color:var(--text-2);cursor:pointer;border-bottom:1px solid var(--border)}
+.ac-item:hover{background:var(--surface2);color:var(--text)}
 .ac-item:last-child{border:none}
-/* emotion suggest badge (US-28) */
-.em-suggest{display:inline-flex;align-items:center;gap:5px;background:#1e2a1e;border:1px solid #2a4a2a;border-radius:999px;padding:2px 8px;font-size:9px;color:#7A9A78;cursor:pointer;margin-top:3px;transition:all .1s}
+.em-suggest{display:inline-flex;align-items:center;gap:5px;background:#1e2a1e;border:1px solid #2a4a2a;border-radius:999px;padding:2px 8px;font-size:9px;color:var(--sage);cursor:pointer;margin-top:3px;transition:all .1s}
 .em-suggest:hover{background:#2a4a2a;color:#9ABA98}
-/* Series strips */
-.strip-card{background:#222;border:1px solid #2a2a2a;border-radius:6px;padding:10px;cursor:pointer;transition:all .1s;position:relative}
-.strip-card:hover{border-color:#C85C3E}
-.strip-card.active{border-color:#C85C3E;background:#1e1008}
-.strip-thumb{width:100%;aspect-ratio:3/4;background:#2a2a2a;border-radius:3px;margin-bottom:6px;display:flex;align-items:center;justify-content:center;font-size:28px}
-.strip-name{font-size:10px;font-weight:700;color:#ccc;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.strip-meta{font-size:8px;color:#444}
-.strip-status{position:absolute;top:5px;right:5px;font-size:7px;padding:2px 5px;border-radius:999px;background:#2a4a2a;color:#7A9A78}
-/* History list (US-41) */
-.hist-item{background:#1e1e1e;border:1px solid #2a2a2a;border-radius:5px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:all .1s}
+.strip-card{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px;cursor:pointer;transition:all .1s;position:relative}
+.strip-card:hover{border-color:var(--coral-dim)}
+.strip-card.active{border-color:var(--coral-dim);background:#1e1008}
+.strip-thumb{width:100%;aspect-ratio:3/4;background:var(--border);border-radius:3px;margin-bottom:6px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.strip-name{font-size:10px;font-weight:700;color:var(--text-2);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strip-meta{font-size:8px;color:var(--text-3)}
+.strip-status{position:absolute;top:5px;right:5px;font-size:7px;padding:2px 5px;border-radius:999px;background:#2a4a2a;color:var(--sage)}
+.hist-item{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:all .1s}
 .hist-item:hover{border-color:#5B9BD5}
-.hist-time{font-size:9px;color:#666;min-width:80px}
-.hist-name{font-size:10px;color:#bbb;flex:1}
+.hist-time{font-size:9px;color:var(--text-3);min-width:80px}
+.hist-name{font-size:10px;color:var(--text-2);flex:1}
 .hist-restore{font-size:9px;padding:3px 8px;background:#1a2030;border:1px solid #5B9BD5;color:#5B9BD5;border-radius:4px;cursor:pointer;font-family:inherit}
-/* Zoom controls (US-15) */
-.zoom-ctrl{display:flex;align-items:center;gap:4px;font-size:9px;color:#555}
+.zoom-ctrl{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--text-3)}
 .zoom-ctrl input[type=range]{width:60px;padding:0;background:0;border:0}
 
-/* ── DARK MODE (US-49) ── */
-body.dark #ed{background:#0d0d0d;border-color:#1a1a1a}
-body.dark .sec{background:#141414;border-color:#1e1e1e}
-body.dark .ped{background:#0e0e0e;border-color:#181818}
-body.dark .f input,body.dark .f textarea,body.dark .f select{background:#0a0a0a;border-color:#222;color:#bbb}
-body.dark #toolbar{background:#0a0a0a;border-color:#181818}
-body:not(.dark) #pv{background:#111}
-body.dark #pv{background:#050505}
+/* ── LEFT PANEL NEW INSPECTOR ── */
+.lp-header{padding:12px 12px 0;border-bottom:1px solid var(--border);flex-shrink:0}
+.lp-header-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.lp-header-sub{font-size:9px;color:var(--text-3);margin-bottom:8px;line-height:1.4}
+.lp-header-sub em{color:var(--coral);font-style:normal}
+.lp-inner{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.lp-inner::-webkit-scrollbar{width:3px}
+.lp-inner::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.lp-sec-label{font-size:9px;font-weight:700;color:var(--text-3);
+  text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.em-grid-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:2px}
+.em-grid-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:6px;
+  padding:6px 4px 5px;cursor:pointer;text-align:center;transition:all .1s;
+  display:flex;flex-direction:column;align-items:center;gap:3px}
+.em-grid-card:hover{border-color:var(--text-3)}
+.em-grid-card.active{border-color:var(--coral);background:#1e1008}
+.em-grid-card svg{display:block}
+.em-grid-card span{font-size:8px;font-weight:600;color:var(--text-3);line-height:1.2;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.em-grid-card.active span{color:var(--coral)}
+.em-add-card{background:none;border:1.5px dashed var(--border);border-radius:6px;
+  padding:6px 4px 5px;cursor:pointer;text-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  min-height:70px;font-size:11px;color:var(--text-3);transition:all .1s}
+.em-add-card:hover{border-color:var(--text-2);color:var(--text-2)}
+.ai-suggest-box{background:var(--surface2);border:1px solid var(--border);
+  border-radius:6px;padding:8px 10px}
+.ai-suggest-box .ai-sb-hdr{display:flex;align-items:center;gap:5px;
+  font-size:9px;font-weight:700;color:var(--text-3);text-transform:uppercase;
+  letter-spacing:.6px;margin-bottom:5px}
+.ai-suggest-box .ai-sb-quote{font-size:10px;color:var(--text-2);
+  margin-bottom:5px;line-height:1.4;font-style:italic}
+.ai-em-pills{display:flex;gap:4px;flex-wrap:wrap}
+.ai-em-pill{display:inline-flex;align-items:center;gap:4px;
+  padding:3px 8px;border-radius:999px;border:1px solid var(--border);
+  background:var(--bg);font-size:9px;color:var(--text-2);cursor:pointer;transition:all .1s}
+.ai-em-pill:hover{border-color:var(--coral-dim);color:var(--coral)}
+.lp-slider-sec{display:flex;flex-direction:column;gap:5px}
+.lp-slider-row{display:flex;align-items:center;gap:6px}
+.lp-slider-row label{font-size:9px;color:var(--text-3);min-width:50px}
+.lp-slider-row input[type=range]{flex:1;padding:0;background:none;border:0;height:3px}
+.lp-slider-row .lp-slider-val{font-size:9px;color:var(--text-2);min-width:30px;text-align:right}
+.char-tab-btn{padding:4px 12px;border-radius:999px;border:1px solid var(--border);background:none;color:var(--text-2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .1s}
+.char-tab-btn:hover{border-color:var(--text-2);color:var(--text)}
+.char-tab-btn.active{background:var(--coral);border-color:var(--coral);color:#fff}
+.char-tab-btn.char-tab-add{margin-left:auto;border-style:dashed;font-size:10px;color:var(--text-3)}
+.char-tab-btn.char-tab-add:hover{border-color:var(--coral-dim);color:var(--coral-dim);border-style:solid}
+.char-type-btn{padding:3px 10px;border-radius:999px;border:1px solid var(--border);background:none;color:var(--text-3);font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .1s}
+.char-type-btn:hover{border-color:var(--text-2);color:var(--text)}
+.char-type-btn.active{background:var(--surface2);border-color:var(--coral-dim);color:var(--coral-dim)}
+.lp-group-btn{width:100%;padding:7px;border:1.5px dashed var(--border);border-radius:6px;
+  background:none;color:var(--text-2);font-size:10px;font-weight:600;cursor:pointer;
+  font-family:inherit;transition:all .1s;display:flex;align-items:center;justify-content:center;gap:5px}
+.lp-group-btn:hover{border-color:var(--coral-dim);color:var(--coral)}
+
+/* dark mode just deepens surface */
+body.dark{--bg:#0C0A06;--surface:#181310;--surface2:#201A10}
 
 /* ── LAYOUT VISUAL PICKER ── */
 #layout-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:5px}
-.lp-btn{background:#111;border:1px solid #2e2e2e;border-radius:5px;padding:6px 4px;cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;gap:3px}
-.lp-btn:hover{border-color:#555}
-.lp-btn.on{border-color:#C85C3E;background:#1e1008}
+.lp-btn{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:6px 4px;cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;gap:3px}
+.lp-btn:hover{border-color:var(--text-3)}
+.lp-btn.on{border-color:var(--coral-dim);background:#1e1008}
 .lp-btn svg{width:36px;height:36px}
-.lp-btn span{font-size:8px;color:#555}
-.lp-btn.on span{color:#C85C3E}
+.lp-btn span{font-size:8px;color:var(--text-3)}
+.lp-btn.on span{color:var(--coral-dim)}
 </style>
 </head>
 <body>
@@ -656,19 +872,19 @@ body.dark #pv{background:#050505}
 <div id="ai-modal">
   <div id="ai-box">
     <header style="padding:12px 16px;border-bottom:1px solid #222;display:flex;align-items:center;gap:8px">
-      <h2 style="font-size:13px;font-weight:700;color:#fff;flex:1">🤖 AI Assistant</h2>
+      <h2 style="font-size:13px;font-weight:700;color:var(--text);flex:1">🤖 AI Assistant</h2>
       <div style="display:flex;gap:5px" id="ai-tabs">
         <button class="ai-tab on" onclick="switchAiTab('script',this)">Script</button>
         <button class="ai-tab" onclick="switchAiTab('title',this)">Tên tập</button>
         <button class="ai-tab" onclick="switchAiTab('punchline',this)">Punchline</button>
       </div>
-      <button onclick="closeAi()" style="background:#222;border:1px solid #333;color:#888;border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer">✕</button>
+      <button onclick="closeAi()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text-2);border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer">✕</button>
     </header>
 
     <!-- Script Generator (US-26) -->
     <div id="ai-tab-script" class="ai-pane" style="padding:14px 16px">
-      <p style="font-size:10px;color:#888;margin-bottom:8px">Mô tả tình huống → AI tạo 4-panel dialogue hoàn chỉnh</p>
-      <textarea id="ai-prompt" style="width:100%;background:#111;border:1px solid #333;border-radius:4px;color:#ccc;padding:8px;font-size:11px;font-family:inherit;resize:vertical;min-height:72px" placeholder="VD: Dũng định hỏi Hà Lan số điện thoại nhưng lại hỏi nhầm về quán phở…" maxlength="200"></textarea>
+      <p style="font-size:10px;color:var(--text-2);margin-bottom:8px">Mô tả tình huống → AI tạo 4-panel dialogue hoàn chỉnh</p>
+      <textarea id="ai-prompt" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:8px;font-size:11px;font-family:inherit;resize:vertical;min-height:72px" placeholder="VD: Dũng định hỏi Hà Lan số điện thoại nhưng lại hỏi nhầm về quán phở…" maxlength="200"></textarea>
       <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
         <button class="btn btn-p" id="ai-gen-btn" onclick="aiGenerateScript()" style="flex:1">✨ Tạo script</button>
         <span style="font-size:9px;color:#444" id="ai-usage">0/10 hôm nay</span>
@@ -678,16 +894,16 @@ body.dark #pv{background:#050505}
 
     <!-- Title Generator (US-30) -->
     <div id="ai-tab-title" class="ai-pane" style="display:none;padding:14px 16px">
-      <p style="font-size:10px;color:#888;margin-bottom:8px">AI đọc toàn bộ dialogue → gợi ý 5 tên tập theo tone</p>
+      <p style="font-size:10px;color:var(--text-2);margin-bottom:8px">AI đọc toàn bộ dialogue → gợi ý 5 tên tập theo tone</p>
       <button class="btn btn-p" onclick="aiGenerateTitles()" style="width:100%;margin-bottom:10px">✨ Gợi ý tên tập</button>
       <div id="ai-titles"></div>
     </div>
 
     <!-- Punchline (US-32) -->
     <div id="ai-tab-punchline" class="ai-pane" style="display:none;padding:14px 16px">
-      <p style="font-size:10px;color:#888;margin-bottom:8px">Chọn panel cuối → AI cải thiện punchline</p>
-      <div class="f"><label style="font-size:9px;color:#666">Panel punchline</label>
-        <select id="ai-punch-panel" style="width:100%;background:#111;border:1px solid #333;border-radius:4px;color:#ccc;padding:4px 6px;font-size:10px"></select>
+      <p style="font-size:10px;color:var(--text-2);margin-bottom:8px">Chọn panel cuối → AI cải thiện punchline</p>
+      <div class="f"><label style="font-size:9px;color:var(--text-3)">Panel punchline</label>
+        <select id="ai-punch-panel" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 6px;font-size:10px"></select>
       </div>
       <button class="btn btn-p" onclick="aiImprovePunchline()" style="width:100%;margin:8px 0">✨ Cải thiện</button>
       <div id="ai-punch-result"></div>
@@ -699,12 +915,12 @@ body.dark #pv{background:#050505}
 <div id="series-modal">
   <div id="series-box">
     <header style="padding:12px 16px;border-bottom:1px solid #222;display:flex;align-items:center;gap:8px">
-      <h2 style="font-size:13px;font-weight:700;color:#fff;flex:1">📂 Series & Lịch sử</h2>
+      <h2 style="font-size:13px;font-weight:700;color:var(--text);flex:1">📂 Series & Lịch sử</h2>
       <div style="display:flex;gap:5px">
         <button class="ai-tab on" onclick="switchSeriesTab('strips',this)">Strips</button>
         <button class="ai-tab" onclick="switchSeriesTab('history',this)">Lịch sử</button>
       </div>
-      <button onclick="closeSeries()" style="background:#222;border:1px solid #333;color:#888;border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer">✕</button>
+      <button onclick="closeSeries()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text-2);border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer">✕</button>
     </header>
     <div id="series-strips-pane" style="padding:14px 16px;overflow-y:auto;max-height:60vh">
       <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -725,7 +941,7 @@ body.dark #pv{background:#050505}
     <header>
       <h2>😊 Chọn biểu cảm</h2>
       <input id="em-search" type="search" placeholder="Tìm kiếm…" oninput="renderEmGrid(this.value,_emotionPickerTarget&&S.panels[_emotionPickerTarget.panelIdx][_emotionPickerTarget.slot])">
-      <button onclick="closeEmotionPicker()" style="background:#222;border:1px solid #333;color:#888;border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer">✕</button>
+      <button onclick="closeEmotionPicker()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text-2);border-radius:4px;padding:4px 10px;font-size:10px;cursor:pointer">✕</button>
     </header>
     <div id="em-grid"></div>
   </div>
@@ -753,145 +969,143 @@ body.dark #pv{background:#050505}
 </div>
 
 <!-- ═══ MAIN LAYOUT ═══ -->
-<div style="display:flex;flex-direction:column;width:310px;min-width:310px;height:100vh">
-<!-- ── TOOLBAR (US-45 + US-47) ── -->
-<div id="toolbar">
-  <button id="btn-undo" onclick="undo()" disabled title="Undo (Cmd+Z)">↩</button>
-  <button id="btn-redo" onclick="redo()" disabled title="Redo (Cmd+Shift+Z)">↪</button>
-  <button onclick="openTpl()" title="Templates (US-50)">📚</button>
-  <button onclick="openAi()" title="AI Assistant (US-26/28/30)" style="color:#7A9A78">🤖 AI</button>
-  <button onclick="openSeries()" title="Series & Lịch sử (US-38/41)">📂</button>
-  <button onclick="toggleDark()" id="btn-dark" title="Dark mode">🌙</button>
-  <button onclick="exportWebtoon()" title="Webtoon export" style="font-size:9px">📜</button>
-  <span id="save-status">Chưa lưu</span>
+<div class="app">
+
+<!-- ── TOPBAR ── -->
+<header class="topbar">
+  <div class="topbar-logo">D</div>
+  <div class="topbar-bread">
+    Series <span>›</span> Dũng &amp; Hà Lan <span>›</span>
+    <span style="background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:2px 9px;color:var(--text);font-size:11px">Tập 03 · Bay Màu</span>
+  </div>
+  <div class="topbar-sep"></div>
+  <div class="topbar-center">
+    <button id="btn-undo" class="tb-btn tb-btn-icon" onclick="undo()" disabled title="Undo (Cmd+Z)">↩</button>
+    <button id="btn-redo" class="tb-btn tb-btn-icon" onclick="redo()" disabled title="Redo (Cmd+Shift+Z)">↪</button>
+    <div class="topbar-sep"></div>
+    <span id="save-status" style="font-size:10px;color:var(--text-3);display:flex;align-items:center;gap:4px">
+      <span style="width:6px;height:6px;border-radius:50%;background:var(--sage);display:inline-block"></span>
+      Đã lưu · 08:38
+    </span>
+    <div class="topbar-sep"></div>
+    <button class="tb-btn tb-btn-icon" title="Lịch sử">🕐</button>
+    <button class="tb-btn tb-btn-icon" onclick="openSeries()" title="Series">🖥</button>
+  </div>
+  <div class="topbar-right">
+    <button class="tb-btn" onclick="openTpl()" title="Templates">⚙ Cài đặt</button>
+    <button class="tb-btn" onclick="openAi()" title="AI Assistant">🌐 Chia sẻ</button>
+    <button class="tb-btn" onclick="toggleDark()" id="btn-dark" title="Dark mode">🌙</button>
+    <button class="tb-btn tb-export" id="btn-exp">↓ Xuất PNG</button>
+    <div class="topbar-sep"></div>
+    <div class="tb-avatar">SU</div>
+  </div>
+</header>
+
+<!-- ── RAIL ── -->
+<nav class="rail">
+  <button class="rail-btn active" title="Panels">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor" opacity=".9"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor" opacity=".9"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor" opacity=".4"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="currentColor" opacity=".4"/></svg>
+    <span>Panels</span>
+  </button>
+  <button class="rail-btn" title="Characters">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="4" fill="currentColor" opacity=".7"/><path d="M3 18c0-4 3-6 7-6s7 2 7 6" stroke="currentColor" stroke-width="1.5" opacity=".7" fill="none"/></svg>
+    <span>Chars</span>
+  </button>
+  <button class="rail-btn" title="Backgrounds">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="16" height="16" rx="2" fill="currentColor" opacity=".3"/><path d="M2 14l5-5 4 4 3-3 4 4" stroke="currentColor" stroke-width="1.5" fill="none" opacity=".8"/></svg>
+    <span>BG</span>
+  </button>
+  <button class="rail-btn" title="Text & Bubbles">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="3" width="16" height="11" rx="2" fill="currentColor" opacity=".4"/><path d="M6 17l4-3h8" stroke="currentColor" stroke-width="1.5" fill="none" opacity=".6"/><line x1="5" y1="7" x2="15" y2="7" stroke="currentColor" stroke-width="1.2" opacity=".8"/><line x1="5" y1="10" x2="12" y2="10" stroke="currentColor" stroke-width="1.2" opacity=".8"/></svg>
+    <span>Text</span>
+  </button>
+  <button class="rail-btn" title="Style & Colors">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="6" cy="8" r="3" fill="#E08160" opacity=".8"/><circle cx="14" cy="8" r="3" fill="#7A9A78" opacity=".8"/><circle cx="10" cy="14" r="3" fill="#5B9BD5" opacity=".8"/></svg>
+    <span>Style</span>
+  </button>
+  <div class="rail-spacer"></div>
+  <button class="rail-btn" title="Export & Share">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 9l4-6 4 6" stroke="currentColor" stroke-width="1.5" fill="none" opacity=".8"/><rect x="3" y="14" width="14" height="3" rx="1" fill="currentColor" opacity=".4"/></svg>
+    <span>Export</span>
+  </button>
+  <button class="rail-btn" onclick="exportWebtoon()" title="Webtoon">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="5" y="2" width="10" height="16" rx="2" fill="currentColor" opacity=".4"/><line x1="8" y1="6" x2="12" y2="6" stroke="currentColor" stroke-width="1.2" opacity=".8"/><line x1="8" y1="9" x2="12" y2="9" stroke="currentColor" stroke-width="1.2" opacity=".8"/><line x1="8" y1="12" x2="11" y2="12" stroke="currentColor" stroke-width="1.2" opacity=".8"/></svg>
+    <span>Webtoon</span>
+  </button>
+</nav>
+
+<!-- ── LEFT PANEL ── -->
+<div class="left-panel">
+  <!-- hidden legacy inputs for undo/redo sync -->
+  <div style="display:none">
+    <span id="fsl">40</span>
+    <input oninput="S.fontSize=+this.value;render()" value="40">
+    <span id="bszl">100</span>
+    <input oninput="S.bubbleScale=+this.value/100;render()" value="100">
+    <div id="layout-picker">
+      <div class="lp-btn on" onclick="setLayout('2x2',this)"></div>
+      <div class="lp-btn" onclick="setLayout('1x4',this)"></div>
+      <div class="lp-btn" onclick="setLayout('1x3',this)"></div>
+      <div class="lp-btn" onclick="setLayout('1x2',this)"></div>
+      <div class="lp-btn" onclick="setLayout('1x1',this)"></div>
+      <div class="lp-btn" onclick="setLayout('2x1',this)"></div>
+      <div class="lp-btn" onclick="setLayout('1+2',this)"></div>
+      <div class="lp-btn" onclick="setLayout('3x1',this)"></div>
+    </div>
+    <div id="sp"><div class="pill b on" onclick="setSize('portrait',this)">9:16</div></div>
+    <div id="bshape-pills"><div class="pill on" onclick="setBShape('oval',this)"></div></div>
+    <div id="bg-sw"><div class="sw on" style="background:#E08160" onclick="setBg('#E08160',this)"></div><div class="sw" id="sw-cust" style="background:#fff"></div></div>
+    <div id="pw"></div>
+    <p id="hint"></p>
+  </div>
+
+  <div class="lp-header">
+    <div class="lp-header-title">Layout &amp; Canvas</div>
+    <div class="lp-header-sub">Chọn nhân vật rồi pick emotion · áp dụng cho <em id="lp-active-label">Khung 1</em></div>
+  </div>
+
+  <div class="lp-inner" id="lp-inner">
+    <!-- built by buildLeftPanel() -->
+  </div>
+</div><!-- end left-panel -->
+
+<!-- ═══ CANVAS ZONE ═══ -->
+<div class="canvas-wrap">
+  <div class="canvas-toolbar">
+    <button class="tb-btn tb-btn-icon" onclick="adjustZoom(-0.1)">−</button>
+    <span id="zoom-lbl" style="font-size:10px;min-width:32px;text-align:center">62%</span>
+    <button class="tb-btn tb-btn-icon" onclick="adjustZoom(0.1)">+</button>
+    <span style="color:var(--text-3);font-size:10px;padding:0 2px">·</span>
+    <button class="tb-btn tb-btn-icon" onclick="resetZoom()" title="Fit">⊡</button>
+  </div>
+  <div id="pv"><div id="cw"></div></div>
 </div>
 
-<!-- ═══ EDITOR ═══ -->
-<div id="ed" style="flex:1;height:0">
-  <h1>Comic Creator</h1>
-  <p class="sub">Dũng &amp; Hà Lan · v3</p>
-
-  <div class="sec">
-    <h3>Layout & Canvas</h3>
-    <div class="f"><label>Bố cục panel</label>
-      <div id="layout-picker">
-        <div class="lp-btn on" onclick="setLayout('2x2',this)" title="2×2 Grid">
-          <svg viewBox="0 0 36 36"><rect x="1" y="1" width="15" height="15" rx="1" fill="#C85C3E" opacity=".7"/><rect x="20" y="1" width="15" height="15" rx="1" fill="#C85C3E" opacity=".7"/><rect x="1" y="20" width="15" height="15" rx="1" fill="#C85C3E" opacity=".7"/><rect x="20" y="20" width="15" height="15" rx="1" fill="#C85C3E" opacity=".7"/></svg>
-          <span>2×2</span>
-        </div>
-        <div class="lp-btn" onclick="setLayout('1x4',this)" title="1×4 Dọc">
-          <svg viewBox="0 0 36 36"><rect x="8" y="1" width="20" height="7" rx="1" fill="#555"/><rect x="8" y="10" width="20" height="7" rx="1" fill="#555"/><rect x="8" y="19" width="20" height="7" rx="1" fill="#555"/><rect x="8" y="28" width="20" height="7" rx="1" fill="#555"/></svg>
-          <span>1×4</span>
-        </div>
-        <div class="lp-btn" onclick="setLayout('1x3',this)" title="1×3 Dọc">
-          <svg viewBox="0 0 36 36"><rect x="5" y="2" width="26" height="9" rx="1" fill="#555"/><rect x="5" y="14" width="26" height="9" rx="1" fill="#555"/><rect x="5" y="26" width="26" height="9" rx="1" fill="#555"/></svg>
-          <span>1×3</span>
-        </div>
-        <div class="lp-btn" onclick="setLayout('1x2',this)" title="1×2 Dọc">
-          <svg viewBox="0 0 36 36"><rect x="3" y="3" width="30" height="13" rx="1" fill="#555"/><rect x="3" y="20" width="30" height="13" rx="1" fill="#555"/></svg>
-          <span>1×2</span>
-        </div>
-        <div class="lp-btn" onclick="setLayout('1x1',this)" title="1 Panel">
-          <svg viewBox="0 0 36 36"><rect x="3" y="3" width="30" height="30" rx="2" fill="#555"/></svg>
-          <span>1×1</span>
-        </div>
-        <div class="lp-btn" onclick="setLayout('2x1',this)" title="2 Ngang">
-          <svg viewBox="0 0 36 36"><rect x="1" y="5" width="15" height="26" rx="1" fill="#555"/><rect x="20" y="5" width="15" height="26" rx="1" fill="#555"/></svg>
-          <span>2×1</span>
-        </div>
-        <div class="lp-btn" onclick="setLayout('1+2',this)" title="1 Lớn + 2 Nhỏ">
-          <svg viewBox="0 0 36 36"><rect x="1" y="1" width="21" height="34" rx="1" fill="#555"/><rect x="24" y="1" width="11" height="16" rx="1" fill="#555"/><rect x="24" y="19" width="11" height="16" rx="1" fill="#555"/></svg>
-          <span>1+2</span>
-        </div>
-        <div class="lp-btn" onclick="setLayout('3x1',this)" title="3 Ngang">
-          <svg viewBox="0 0 36 36"><rect x="1" y="5" width="10" height="26" rx="1" fill="#555"/><rect x="13" y="5" width="10" height="26" rx="1" fill="#555"/><rect x="25" y="5" width="10" height="26" rx="1" fill="#555"/></svg>
-          <span>3×1</span>
-        </div>
-      </div>
-    </div>
-    <div class="f"><label>Kích thước xuất</label>
-      <div class="pills" id="sp">
-        <div class="pill b on" onclick="setSize('portrait',this)">9:16</div>
-        <div class="pill b" onclick="setSize('square',this)">1:1</div>
-        <div class="pill b" onclick="setSize('story',this)">4:5</div>
-        <div class="pill b" onclick="setSize('wide',this)">16:9</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="sec">
-    <h3>Style</h3>
-    <div class="f"><label>Màu nền panel</label>
-      <div class="sws" id="bg-sw">
-        <div class="sw on" style="background:#E08160" onclick="setBg('#E08160',this)"></div>
-        <div class="sw" style="background:#C85C3E" onclick="setBg('#C85C3E',this)"></div>
-        <div class="sw" style="background:#7A9A78" onclick="setBg('#7A9A78',this)"></div>
-        <div class="sw" style="background:#5B7FA6" onclick="setBg('#5B7FA6',this)"></div>
-        <div class="sw" style="background:#8B6BA8" onclick="setBg('#8B6BA8',this)"></div>
-        <div class="sw" style="background:#D4A843" onclick="setBg('#D4A843',this)"></div>
-        <div class="sw" style="background:#3D4A5C" onclick="setBg('#3D4A5C',this)"></div>
-        <div class="sw" style="background:#A05060" onclick="setBg('#A05060',this)"></div>
-        <div class="sw-c">
-          <div class="sw" id="sw-cust" style="background:#fff;border-style:dashed;border-color:#444"></div>
-          <input type="color" value="#E08160" oninput="setBgCustom(this.value)">
-        </div>
-      </div>
-    </div>
-    <div class="f"><label>Font bubble</label>
-      <select onchange="S.font=this.value;render()">
-        <option value="patrick">Patrick Hand</option>
-        <option value="pangolin">Pangolin</option>
-        <option value="bangers">Bangers</option>
-        <option value="caveat">Caveat</option>
-        <option value="bevn">Be Vietnam Pro</option>
-      </select>
-    </div>
-    <div class="f"><label>Cỡ chữ: <span id="fsl">40</span>px</label>
-      <input type="range" min="20" max="70" value="40" style="padding:0;background:0;border:0;width:100%"
-        oninput="S.fontSize=+this.value;document.getElementById('fsl').textContent=this.value;render()">
-    </div>
-    <div class="f"><label>Hình dạng bubble</label>
-      <div class="pills" id="bshape-pills">
-        <div class="pill on" onclick="setBShape('oval',this)" title="Oval tròn — kiểu Gia Đình Ngộ">⬭ Oval</div>
-        <div class="pill" onclick="setBShape('rect',this)" title="Chữ nhật bo góc — kiểu Dreamers">▭ Rect</div>
-        <div class="pill" onclick="setBShape('cloud',this)" title="Đám mây — suy nghĩ nội tâm">☁ Cloud</div>
-        <div class="pill" onclick="setBShape('shout',this)" title="Hét lên — spike bubble">⚡ Shout</div>
-      </div>
-    </div>
-    <div class="f"><label>Cỡ bubble: <span id="bszl">100</span>%</label>
-      <input type="range" min="60" max="160" value="100" style="padding:0;background:0;border:0;width:100%"
-        oninput="S.bubbleScale=+this.value/100;document.getElementById('bszl').textContent=this.value;render()">
-    </div>
-  </div>
-
-  <div class="sec">
-    <h3>Header / Footer</h3>
-    <div class="r2">
-      <div class="f"><label>Tiêu đề</label><input value="DŨNG & HÀ LAN" oninput="S.title=this.value;render()"></div>
-      <div class="f"><label>Tập</label><input value="TẬP 02" oninput="S.ep=this.value;render()"></div>
-    </div>
-    <div class="f"><label>Brand</label><input value="DREAMERS" oninput="S.brand=this.value;render()"></div>
-  </div>
-
-  <div id="pw"></div>
-
-  <div class="brow">
-    <button class="btn btn-p" id="btn-exp">⬇ Export PNG</button>
-    <button class="btn btn-s" onclick="resetPanels()">↺ Reset</button>
-  </div>
-  <p id="hint" style="font-size:9px;color:#444;margin-top:3px;font-style:italic"></p>
-  <div style="height:20px"></div>
+<!-- ═══ RIGHT PANEL — PANEL INSPECTOR ═══ -->
+<div class="right-panel" id="right-panel">
+  <!-- built by buildRightPanel() -->
 </div>
-</div><!-- end sidebar wrapper -->
 
-<!-- ═══ PREVIEW ═══ -->
-<div id="pv"><div id="cw"></div></div>
+<!-- ═══ PANELS STRIP ═══ -->
+<div class="panels-strip" id="panels-strip">
+  <div class="strip-label">KHUNG</div>
+  <div class="strip-thumbs-inner" id="strip-thumbs"></div>
+  <button class="strip-add" onclick="addPanel()" title="Thêm panel">+</button>
+  <div class="strip-actions">
+    <span style="font-size:9px;color:var(--text-3)" id="strip-count"></span>
+  </div>
+</div>
+
+</div><!-- end .app -->
 
 <script>
 // ══ FONT MAP ══
 const FM={patrick:"'Patrick Hand',cursive",bangers:"'Bangers',cursive",pangolin:"'Pangolin',cursive",caveat:"'Caveat',cursive",bevn:"'Be Vietnam Pro',sans-serif"};
 const SZ={portrait:{W:1080,H:1920},square:{W:1080,H:1080},story:{W:1080,H:1350},wide:{W:1920,H:1080}};
 const GAP=20,HDR=60,FTR=50;
+
+// ══ ACTIVE PANEL (for left + right inspector) ══
+let _activePanel=0;
 
 // ══ STATE ══
 const S={
@@ -944,16 +1158,10 @@ function redo(){
 function applySnap(snap){
   const data=JSON.parse(snap);
   Object.assign(S,data);
-  // sync sliders/inputs
-  document.getElementById('fsl').textContent=S.fontSize;
-  document.querySelector('input[oninput*="fontSize"]').value=S.fontSize;
-  document.getElementById('bszl').textContent=Math.round((S.bubbleScale||1)*100);
-  document.querySelector('input[oninput*="bubbleScale"]').value=Math.round((S.bubbleScale||1)*100);
-  // sync layout buttons
-  document.querySelectorAll('#layout-picker .lp-btn').forEach(b=>{
-    b.classList.toggle('on', b.getAttribute('onclick')?.includes(`'${S.layout}'`));
-  });
-  buildEd(); render(); updateUndoUI();
+  // clamp active panel BEFORE builders use it
+  _activePanel=Math.max(0, Math.min(_activePanel, S.panels.length-1));
+  _lpSlot='char1'; // reset slot in case prior state had char2 selected
+  buildEd(); buildLeftPanel(); buildRightPanel(); render(); renderStrip(); updateUndoUI();
 }
 function updateUndoUI(){
   const bu=document.getElementById('btn-undo');
@@ -968,22 +1176,31 @@ function snap(){
   _snapTimer=setTimeout(snapshot,400);
 }
 
+// rAF-throttled render — for slider oninput (avoid 60+ renders/sec)
+let _renderRAF=0;
+function scheduleRender(){
+  if(_renderRAF) return;
+  _renderRAF=requestAnimationFrame(()=>{_renderRAF=0; render();});
+}
+
 // ══════════════════════════════════════════════════
 // US-47: AUTOSAVE + OFFLINE DRAFT
 // ══════════════════════════════════════════════════
 const SAVE_KEY='dreamers-comic-draft';
 let _saveTimer=null;
+function setStatusHtml(el,html){if(el)el.innerHTML=html;}
 function scheduleSave(){
   const el=document.getElementById('save-status');
-  if(el){el.className='saving';el.textContent='Đang lưu…';}
+  setStatusHtml(el,'<span style="width:6px;height:6px;border-radius:50%;background:#8A8070;display:inline-block"></span> Đang lưu…');
   clearTimeout(_saveTimer);
   _saveTimer=setTimeout(()=>{
     try{
       localStorage.setItem(SAVE_KEY, JSON.stringify(S));
       localStorage.setItem(SAVE_KEY+'-ts', Date.now());
-      if(el){el.className='';el.textContent='Đã lưu '+new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});}
+      const t=new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+      setStatusHtml(el,`<span style="width:6px;height:6px;border-radius:50%;background:var(--sage);display:inline-block"></span> Đã lưu · ${t}`);
     }catch(e){
-      if(el){el.className='offline';el.textContent='Lưu thất bại';}
+      setStatusHtml(el,'<span style="width:6px;height:6px;border-radius:50%;background:#C85C3E;display:inline-block"></span> Lưu thất bại');
     }
   },1500);
 }
@@ -995,7 +1212,7 @@ function loadDraft(){
     Object.assign(S,data);
     const ts=localStorage.getItem(SAVE_KEY+'-ts');
     const el=document.getElementById('save-status');
-    if(el&&ts) el.textContent='Draft '+new Date(+ts).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+    if(el&&ts){const t=new Date(+ts).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});setStatusHtml(el,`<span style="width:6px;height:6px;border-radius:50%;background:var(--sage);display:inline-block"></span> Draft · ${t}`);}
     return true;
   }catch(e){return false;}
 }
@@ -1229,11 +1446,11 @@ function applyTpl(id){
   const t=TEMPLATES.find(x=>x.id===id);
   if(!t) return;
   Object.assign(S,JSON.parse(JSON.stringify(t.state)));
-  // sync layout button
-  document.querySelectorAll('#layout-picker .lp-btn').forEach(b=>{
-    b.classList.toggle('on', b.getAttribute('onclick')?.includes(`'${S.layout}'`));
-  });
-  buildEd();render();snap();scheduleSave();
+  _activePanel=0;
+  _lpSlot='char1';
+  _rpTab='khung';
+  // Layout picker is rebuilt by buildLeftPanel(), no need to manually toggle
+  buildEd();buildLeftPanel();buildRightPanel();render();renderStrip();snap();scheduleSave();
   closeTpl();
 }
 document.getElementById('tpl-modal').addEventListener('click',e=>{if(e.target===document.getElementById('tpl-modal'))closeTpl();});
@@ -1241,16 +1458,16 @@ document.getElementById('tpl-modal').addEventListener('click',e=>{if(e.target===
 // ══ CONTROLS ══
 function setLayout(l,el){
   setLayoutKey(l);
-  document.querySelectorAll('#layout-picker .lp-btn').forEach(p=>p.classList.remove('on'));
-  if(el) el.classList.add('on');
-  buildEd();render();snap();scheduleSave();
+  // clamp active panel after layout change (cnt may have shrunk)
+  _activePanel=Math.max(0,Math.min(_activePanel,S.panels.length-1,cnt()-1));
+  buildEd();buildLeftPanel();buildRightPanel();render();renderStrip();snap();scheduleSave();
 }
 function setLayoutKey(l){
   S.layout=l;
   const n=cnt();
   while(S.panels.length<n) S.panels.push({char1:'dung-deadpan',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''});
 }
-function setSize(s,el){S.size=s;document.querySelectorAll('#sp .pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');render();}
+function setSize(s,el){S.size=s;render();buildLeftPanel();buildRightPanel();snap();scheduleSave();}
 function setBg(c,el){S.bgColor=c;document.querySelectorAll('#bg-sw .sw').forEach(s=>s.classList.remove('on'));el.classList.add('on');render();snap();scheduleSave();}
 function setBgCustom(c){S.bgColor=c;const d=document.getElementById('sw-cust');d.style.background=c;document.querySelectorAll('#bg-sw .sw').forEach(s=>s.classList.remove('on'));d.classList.add('on');render();snap();scheduleSave();}
 function setBShape(s,el){S.bubbleShape=s;document.querySelectorAll('#bshape-pills .pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');render();snap();scheduleSave();}
@@ -1314,7 +1531,7 @@ function selectEmotion(id){
   const {panelIdx,slot}=_emotionPickerTarget;
   S.panels[panelIdx][slot]=id;
   render(); snap(); scheduleSave();
-  buildEd();
+  buildEd(); buildLeftPanel(); buildRightPanel();
   closeEmotionPicker();
 }
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1342,7 +1559,7 @@ function bpOpts(sel){return BPOS.map(([v,l])=>`<option value="${v}"${sel===v?' s
 function emBtn(panelIdx, slot, curId){
   const found=CHAR_EMOTIONS.find(([id])=>id===curId)||CHAR_EMOTIONS[0];
   return `<div class="em-btn" onclick="openEmotionPicker(${panelIdx},'${slot}')" title="Đổi biểu cảm">
-    <span>${found[2]}</span> <span style="flex:1;font-size:9px;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${found[1].replace(/^(Dũng|Hà Lan) · /,'')}</span>
+    <span>${found[2]}</span> <span style="flex:1;font-size:9px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${found[1].replace(/^(Dũng|Hà Lan) · /,'')}</span>
     <span style="color:#444;font-size:9px">▾</span>
   </div>`;
 }
@@ -1353,6 +1570,507 @@ const BTYPES=[
   ['whisper','🤫 Whisper'],['shout','📣 Shout'],['narrator','📝 Narrator'],
 ];
 function btOpts(sel='speech'){return BTYPES.map(([v,l])=>`<option value="${v}"${(sel||'speech')===v?' selected':''}>${l}</option>`).join('');}
+
+// ══ LEFT PANEL INSPECTOR ══
+// Emotion data filtered by character type
+const DUNG_EMOTIONS=[
+  {id:'dung-deadpan', label:'Deadpan'},
+  {id:'dung-sweat',   label:'Căng / lo'},
+  {id:'dung-confused',label:'Bối rối'},
+  {id:'dung-angry',   label:'Tức'},
+  {id:'dung-sigh',    label:'Thở dài'},
+];
+const HALAN_EMOTIONS=[
+  {id:'halan-reading',    label:'Bình thản'},
+  {id:'halan-smirk',      label:'Smirk'},
+  {id:'halan-embarrassed',label:'Xấu hổ'},
+  {id:'halan-cold',       label:'Lạnh lùng'},
+  {id:'halan-happy',      label:'Vui vẻ'},
+];
+
+function getEmotionsForChar(charId){
+  if(!charId||charId==='none') return DUNG_EMOTIONS;
+  if(charId.startsWith('dung')) return DUNG_EMOTIONS;
+  if(charId.startsWith('halan')) return HALAN_EMOTIONS;
+  return DUNG_EMOTIONS;
+}
+
+function getChar2Name(charId){
+  if(!charId||charId==='none') return null;
+  if(charId.startsWith('halan')) return 'Hà Lan';
+  return null;
+}
+
+// AI suggestion based on active panel dialogue
+function getAiSuggestion(panelIdx){
+  const p=S.panels[panelIdx];
+  if(!p) return null;
+  const text=(p.b1?.text||'')+' '+(p.b2?.text||'')+' '+(p.caption||'');
+  const low=text.toLowerCase();
+  // simple rule-based
+  if(/unsend|vội|panic|gấp/.test(low)) return {
+    quote:'"vội vàng ấn unsend" → Dũng đang panic. Mình gợi ý:',
+    pills:[
+      {emoji:'😨',label:'Căng / lo',  id:'dung-sweat'},
+      {emoji:'😕',label:'Bối rối',    id:'dung-confused'},
+      {emoji:'💀',label:'Tức',        id:'dung-angry'},
+    ]
+  };
+  if(/đừng|no|stop/.test(low)) return {
+    quote:'"Đừng!" → Hà Lan phản ứng. Mình gợi ý:',
+    pills:[
+      {emoji:'🙂',label:'Smirk',      id:'halan-smirk'},
+      {emoji:'🥶',label:'Lạnh lùng',  id:'halan-cold'},
+      {emoji:'😳',label:'Xấu hổ',     id:'halan-embarrassed'},
+    ]
+  };
+  if(/à\.|ừ\.|okay/.test(low)) return {
+    quote:'Phản ứng nhẹ nhàng. Mình gợi ý:',
+    pills:[
+      {emoji:'😌',label:'Bình thản',  id:'halan-reading'},
+      {emoji:'😮‍💨',label:'Thở dài', id:'dung-sigh'},
+      {emoji:'😐',label:'Deadpan',    id:'dung-deadpan'},
+    ]
+  };
+  return null;
+}
+
+let _lpSlot='char1'; // which slot the emotion grid is editing
+
+const _LAYOUTS=[
+  ['2x2','2×2','rect 1 1 15 15|rect 20 1 15 15|rect 1 20 15 15|rect 20 20 15 15'],
+  ['1x4','1×4','rect 8 1 20 7|rect 8 10 20 7|rect 8 19 20 7|rect 8 28 20 7'],
+  ['1x3','1×3','rect 5 2 26 9|rect 5 14 26 9|rect 5 26 26 9'],
+  ['1x2','1×2','rect 3 3 30 13|rect 3 20 30 13'],
+  ['1x1','1×1','rect 3 3 30 30'],
+  ['2x1','2×1','rect 1 5 15 26|rect 20 5 15 26'],
+  ['1+2','1+2','rect 1 1 21 34|rect 24 1 11 16|rect 24 19 11 16'],
+  ['3x1','3×1','rect 1 5 10 26|rect 13 5 10 26|rect 25 5 10 26'],
+];
+function _buildLayoutPicker(){
+  return _LAYOUTS.map(([key,label,shapeDef])=>{
+    const rects=shapeDef.split('|').map((r,ri)=>{
+      const [,x,y,w,h]=r.split(' ');
+      const op=ri===0?'.7':ri===1?'.5':ri===2?'.4':'.3';
+      return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="1" fill="currentColor" opacity="'+op+'"/>';
+    }).join('');
+    return '<div class="lp-btn'+(S.layout===key?' on':'')+'" onclick="setLayout(\''+key+'\',this)" title="'+label+'"><svg viewBox="0 0 36 36">'+rects+'</svg><span>'+label+'</span></div>';
+  }).join('');
+}
+function _buildSizePills(){
+  return [['portrait','9:16'],['square','1:1'],['story','4:5'],['wide','16:9']].map(([key,label])=>
+    '<div class="pill b'+(S.size===key?' on':'')+'" onclick="setSize(\''+key+'\',this)">'+label+'</div>'
+  ).join('');
+}
+
+function buildLeftPanel(){
+  const container=document.getElementById('lp-inner');
+  if(!container) return;
+  const pi=Math.min(_activePanel, S.panels.length-1);
+  const p=S.panels[pi]||{};
+
+  // Update subtitle label
+  const lbl=document.getElementById('lp-active-label');
+  if(lbl) lbl.textContent='Khung '+(pi+1);
+
+  // Determine which slot we're editing
+  const slot=_lpSlot;
+  const curChar=p[slot]||'dung-deadpan';
+  const emotions=getEmotionsForChar(curChar);
+  const char2=p.char2&&p.char2!=='none'?p.char2:null;
+  const sc1=p.scale1||100;
+  const panXVal=p.panX||0;
+
+  // Detect character type of each slot
+  const isDung = (id)=>!id||id==='none'||id.startsWith('dung');
+  const char1IsDung=isDung(p.char1);
+  const char2IsDung=isDung(p.char2);
+  const char2Exists=p.char2&&p.char2!=='none';
+
+  // Character switcher: slot tabs + character type toggle per slot
+  const slotLabel=(s)=>{
+    const id=p[s]||'none';
+    if(!id||id==='none') return s==='char1'?'Nhân vật 1':'Trống';
+    return id.startsWith('dung')?'Dũng':'Hà Lan';
+  };
+  const tab1Active=slot==='char1'?' active':'';
+  const tab2Active=slot==='char2'?' active':'';
+  const nv2Btn=char2Exists
+    ? '<button class="char-tab-btn'+tab2Active+'" onclick="_lpSlot=\'char2\';buildLeftPanel()">'+slotLabel('char2')+'</button>'
+    : '';
+  const addBtnLabel=char2Exists?'− Bỏ NV2':'+ Thêm NV2';
+  const typeActiveDung=isDung(p[slot])?' active':'';
+  const typeActiveHalan=!isDung(p[slot])?' active':'';
+  const charTabs=
+    '<div style="display:flex;gap:4px;align-items:center;margin-bottom:6px">'
+    +'<button class="char-tab-btn'+tab1Active+'" onclick="_lpSlot=\'char1\';buildLeftPanel()">'+slotLabel('char1')+'</button>'
+    +nv2Btn
+    +'<button class="char-tab-btn char-tab-add" onclick="addHalanToPanel('+pi+')">'+addBtnLabel+'</button>'
+    +'</div>'
+    +'<div style="display:flex;gap:4px;margin-bottom:10px;align-items:center">'
+    +'<span style="font-size:10px;color:var(--text-3);min-width:48px">Nhân vật:</span>'
+    +'<button class="char-type-btn'+typeActiveDung+'" onclick="switchCharType('+pi+',\''+slot+'\',\'dung\')">Dũng</button>'
+    +'<button class="char-type-btn'+typeActiveHalan+'" onclick="switchCharType('+pi+',\''+slot+'\',\'halan\')">Hà Lan</button>'
+    +'</div>';
+
+  // Emotion grid for current slot
+  let emotionCards=emotions.map(e=>`
+    <div class="em-grid-card${curChar===e.id?' active':''}" onclick="setActiveEmotion('${e.id}')">
+      <svg viewBox="-60 -80 120 160" height="56" width="52"><use href="#${e.id}"/></svg>
+      <span>${e.label}</span>
+    </div>`).join('');
+  emotionCards+=`<div class="em-add-card" onclick="openEmotionPicker(${pi},'${slot}')"><span style="font-size:14px">+</span><span>thêm</span></div>`;
+
+  // AI suggestion box
+  const ai=getAiSuggestion(pi);
+  let aiBox='';
+  if(ai){
+    const pills=ai.pills.map(p2=>`<div class="ai-em-pill" onclick="setActiveEmotion('${p2.id}')">${p2.emoji} ${p2.label}</div>`).join('');
+    aiBox=`
+    <div class="ai-suggest-box">
+      <div class="ai-sb-hdr"><span style="font-size:11px">✦</span> AI GỢI Ý THEO THOẠI</div>
+      <div class="ai-sb-quote">${ai.quote}</div>
+      <div class="ai-em-pills">${pills}</div>
+    </div>`;
+  } else {
+    // show generic based on dialogue
+    const text=(p.b1?.text||'')+' '+(p.b2?.text||'');
+    if(text.trim()){
+      const sug=ruleEmotion?ruleEmotion(text):null;
+      const sugEntry=sug?CHAR_EMOTIONS.find(([id])=>id===sug):null;
+      if(sugEntry){
+        aiBox=`
+    <div class="ai-suggest-box">
+      <div class="ai-sb-hdr"><span style="font-size:11px">✦</span> AI GỢI Ý THEO THOẠI</div>
+      <div class="ai-sb-quote">"${text.slice(0,40)}..." → Gợi ý emotion:</div>
+      <div class="ai-em-pills">
+        <div class="ai-em-pill" onclick="setActiveEmotion('${sugEntry[0]}')">${sugEntry[2]} ${sugEntry[1].replace(/^(Dũng|Hà Lan) · /,'')}</div>
+      </div>
+    </div>`;
+      }
+    }
+  }
+
+  container.innerHTML=`
+    <div>
+      <div class="lp-sec-label">Nhân vật &amp; Cảm xúc</div>
+      ${charTabs}
+      <div class="em-grid-wrap">${emotionCards}</div>
+    </div>
+    ${aiBox}
+    <div>
+      <div class="lp-sec-label">VỊ TRÍ &amp; SCALE</div>
+      <div class="lp-slider-sec">
+        <div class="lp-slider-row">
+          <label>Scale</label>
+          ${(()=>{const scaleKey=slot==='char1'?'scale1':'scale2';const scaleVal=p[scaleKey]||100;return '<input type="range" min="50" max="150" value="'+scaleVal+'" oninput="S.panels[_activePanel].'+scaleKey+'=+this.value;this.nextElementSibling.textContent=this.value+\'%\';scheduleRender()" onchange="snap();scheduleSave()"><span class="lp-slider-val">'+scaleVal+'%</span>';})()}
+        </div>
+        <div class="lp-slider-row">
+          <label>Vị trí X</label>
+          <input type="range" min="-50" max="50" value="${panXVal}"
+            oninput="S.panels[_activePanel].panX=+this.value;this.nextElementSibling.textContent=this.value;scheduleRender()"
+            onchange="snap();scheduleSave()">
+          <span class="lp-slider-val">${panXVal}</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="lp-sec-label">BỐ CỤC</div>
+      <div id="layout-picker" style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px">
+        ${_buildLayoutPicker()}
+      </div>
+      <div class="lp-sec-label" style="margin-top:0">KÍCH THƯỚC XUẤT</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">
+        ${_buildSizePills()}
+      </div>
+      <button class="lp-group-btn" onclick="resetPanels()" style="color:var(--coral-dim);border-color:var(--coral-dim);opacity:.8">
+        ↺ Reset tất cả panel
+      </button>
+    </div>
+  `;
+}
+
+function setActiveEmotion(id){
+  const pi=Math.min(_activePanel, S.panels.length-1);
+  if(!S.panels[pi]) return;
+  S.panels[pi][_lpSlot]=id; // write to whichever slot is active (char1 or char2)
+  render();snap();scheduleSave();
+  buildLeftPanel();
+  buildRightPanel();
+}
+
+function switchCharType(pi, slot, type){
+  // switch character type (dung/halan) keeping same emotion category
+  const p=S.panels[pi]; if(!p) return;
+  const cur=p[slot]||'dung-neutral';
+  // extract emotion suffix (e.g. 'sweat', 'happy')
+  const suffix=cur.replace(/^(dung|halan)-/,'');
+  const newBase=type==='dung'?'dung':'halan';
+  // try to keep same emotion, fallback to neutral
+  const DUNG=DUNG_EMOTIONS.map(e=>e.id);
+  const HALAN=HALAN_EMOTIONS.map(e=>e.id);
+  const list=type==='dung'?DUNG:HALAN;
+  const match=list.find(id=>id===newBase+'-'+suffix)||list[0];
+  p[slot]=match;
+  render();snap();scheduleSave();
+  buildLeftPanel();buildRightPanel();
+}
+
+function addHalanToPanel(pi){
+  const p=S.panels[pi];
+  if(!p) return;
+  if(p.char2&&p.char2!=='none'){
+    // toggle off — remember current emotion so we can restore it
+    p._char2Cache=p.char2;
+    p.char2='none';
+    _lpSlot='char1';
+  } else {
+    // restore cached emotion if exists, else default to halan-reading (which exists in SVG)
+    p.char2=p._char2Cache||'halan-reading';
+    _lpSlot='char2'; // switch sang Hà Lan để edit emotion ngay
+  }
+  render();snap();scheduleSave();
+  buildLeftPanel();
+  buildRightPanel();
+}
+
+function setActivePanel(idx){
+  _activePanel=Math.max(0, Math.min(idx, S.panels.length-1));
+  _lpSlot='char1';
+  _rpTab='khung';
+  buildLeftPanel();
+  buildRightPanel();
+  renderStrip();
+  render(); // re-render để cập nhật active highlight trên canvas
+}
+
+// ══ RIGHT PANEL INSPECTOR ══
+let _rpTab='khung'; // 'khung' | 'bubble' | 'sfx'
+
+const BG_OPTIONS=[
+  {id:'bg-cafe',    label:'Cà phê'},
+  {id:'bg-street',  label:'Phố / đêm'},
+  {id:'bg-park',    label:'Công viên'},
+  {id:'bg-room',    label:'Phòng / nhà'},
+  {id:'bg-rooftop', label:'Sân thượng'},
+  {id:'bg-plain',   label:'Trơn / màu'},
+];
+
+function buildRightPanel(){
+  const container=document.getElementById('right-panel');
+  if(!container) return;
+  const pi=Math.min(_activePanel, S.panels.length-1);
+  const p=S.panels[pi]||{char1:'none',char2:'none',bg:'bg-plain',b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''};
+  const totalPanels=S.panels.length;
+
+  const tabs=['khung','bubble','sfx','style'];
+  const tabLabels=['Khung','Bubble','SFX','Style'];
+  const tabHtml=tabs.map((t,i)=>`<button class="rp-tab${_rpTab===t?' active':''}" onclick="_rpTab='${t}';buildRightPanel()">${tabLabels[i]}</button>`).join('');
+
+  let bodyHtml='';
+
+  if(_rpTab==='khung'){
+    // Background grid
+    const bgCards=BG_OPTIONS.map(bg=>`
+      <div class="bg-card${(p.bg||'bg-plain')===bg.id?' active':''}" onclick="setActiveBg('${bg.id}')">
+        <div class="bg-card-thumb">
+          <svg viewBox="0 0 540 460" width="100%" height="52"><use href="#${bg.id}"/><rect width="540" height="460" fill="${S.bgColor}" opacity="${bg.id==='bg-plain'?'0.6':'0.15'}"/></svg>
+        </div>
+        <div class="bg-card-label">${bg.label}</div>
+      </div>`).join('');
+
+    // Bubble 1 quick editor
+    const b1=p.b1||{text:'',pos:'top-left',type:'speech'};
+    const posShort={'top-left':'trên-trái','top-center':'trên-giữa','top-right':'trên-phải','bottom-left':'dưới-trái','bottom-center':'dưới-giữa','bottom-right':'dưới-phải'};
+    const posLabel=posShort[b1.pos||'top-left']||'trên-trái';
+
+    const sz=SZ[S.size]||SZ.portrait;
+    bodyHtml=`
+      <div class="rp-sec-label">BACKGROUND</div>
+      <div class="bg-grid">${bgCards}</div>
+      <div class="rp-sec-label">BUBBLE #1 <span class="bubble-pos-tag">${posLabel}</span></div>
+      <div class="bubble-section">
+        <div class="rp-row">
+          <div style="flex:1">
+            <label>Loại</label>
+            <select class="rp-select" onchange="S.panels[_activePanel].b1.type=this.value;render();buildRightPanel()">${btOpts(b1.type)}</select>
+          </div>
+          <div style="flex:1">
+            <label>Vị trí</label>
+            <select class="rp-select" onchange="S.panels[_activePanel].b1.pos=this.value;render();buildRightPanel()">${bpOpts(b1.pos)}</select>
+          </div>
+        </div>
+        <textarea class="rp-textarea" placeholder="Nhập lời thoại…"
+          oninput="S.panels[_activePanel].b1.text=this.value;render();snap();scheduleSave()">${b1.text}</textarea>
+      </div>
+      <div class="rp-sec-label">ZOOM &amp; PAN</div>
+      <div class="bubble-section">
+        <div class="rp-slider-row">
+          <label>Zoom</label>
+          <input type="range" min="100" max="200" value="${p.zoom||100}"
+            oninput="S.panels[_activePanel].zoom=+this.value;this.nextElementSibling.textContent=this.value+'%';scheduleRender()"
+            onchange="snap();scheduleSave()">
+          <span class="rp-slider-val">${p.zoom||100}%</span>
+        </div>
+        <div class="rp-slider-row">
+          <label>Pan X</label>
+          <input type="range" min="-50" max="50" value="${p.panX||0}"
+            oninput="S.panels[_activePanel].panX=+this.value;this.nextElementSibling.textContent=this.value;scheduleRender()"
+            onchange="snap();scheduleSave()">
+          <span class="rp-slider-val">${p.panX||0}</span>
+        </div>
+        <div class="rp-slider-row">
+          <label>Pan Y</label>
+          <input type="range" min="-50" max="50" value="${p.panY||0}"
+            oninput="S.panels[_activePanel].panY=+this.value;this.nextElementSibling.textContent=this.value;scheduleRender()"
+            onchange="snap();scheduleSave()">
+          <span class="rp-slider-val">${p.panY||0}</span>
+        </div>
+      </div>
+      <div class="rp-sec-label">TRANSITION SAU KHUNG</div>
+      <div class="bubble-section">
+        <select class="rp-select" onchange="S.panels[_activePanel].transition=this.value;render();snap();scheduleSave()">
+          <option value=""${!p.transition?' selected':''}>— Không có —</option>
+          <option value="timeskip"${p.transition==='timeskip'?' selected':''}>⏩ Time skip</option>
+          <option value="flashback"${p.transition==='flashback'?' selected':''}>📷 Flashback</option>
+          <option value="dream"${p.transition==='dream'?' selected':''}>💭 Dream</option>
+          <option value="cut"${p.transition==='cut'?' selected':''}>✂ Hard cut</option>
+        </select>
+      </div>`;
+  } else if(_rpTab==='bubble'){
+    const b1=p.b1||{text:'',pos:'top-left',type:'speech'};
+    const b2=p.b2||{text:'',pos:'top-right',type:'speech'};
+    const shapeOpts=(cur)=>['','oval','rect','cloud','shout'].map(v=>`<option value="${v}"${(cur||'')=== v?' selected':''}>${v===''?'Global':v==='oval'?'⬭ Oval':v==='rect'?'▭ Rect':v==='cloud'?'☁ Cloud':'⚡ Shout'}</option>`).join('');
+    bodyHtml=`
+      <div class="rp-sec-label">BUBBLE 1</div>
+      <div class="bubble-section">
+        <div class="rp-row">
+          <div style="flex:1"><label>Loại</label>
+            <select class="rp-select" onchange="S.panels[_activePanel].b1.type=this.value;render()">${btOpts(b1.type)}</select></div>
+          <div style="flex:1"><label>Vị trí</label>
+            <select class="rp-select" onchange="S.panels[_activePanel].b1.pos=this.value;render()">${bpOpts(b1.pos)}</select></div>
+          <div style="flex:1"><label>Shape</label>
+            <select class="rp-select" onchange="S.panels[_activePanel].b1.shape=this.value;render()">${shapeOpts(b1.shape)}</select></div>
+        </div>
+        <textarea class="rp-textarea" oninput="S.panels[_activePanel].b1.text=this.value;render();snap();scheduleSave()">${b1.text}</textarea>
+      </div>
+      <div class="rp-sec-label">BUBBLE 2</div>
+      <div class="bubble-section">
+        <div class="rp-row">
+          <div style="flex:1"><label>Loại</label>
+            <select class="rp-select" onchange="S.panels[_activePanel].b2.type=this.value;render()">${btOpts(b2.type)}</select></div>
+          <div style="flex:1"><label>Vị trí</label>
+            <select class="rp-select" onchange="S.panels[_activePanel].b2.pos=this.value;render()">${bpOpts(b2.pos)}</select></div>
+          <div style="flex:1"><label>Shape</label>
+            <select class="rp-select" onchange="S.panels[_activePanel].b2.shape=this.value;render()">${shapeOpts(b2.shape)}</select></div>
+        </div>
+        <textarea class="rp-textarea" oninput="S.panels[_activePanel].b2.text=this.value;render();snap();scheduleSave()">${b2.text}</textarea>
+      </div>`;
+  } else if(_rpTab==='sfx'){
+    const sfx=p.sfx||'';
+    bodyHtml=`
+      <div class="rp-sec-label">SFX TEXT</div>
+      <div class="bubble-section">
+        <textarea class="rp-textarea" placeholder="BÌNH! / UGH / wow…"
+          oninput="S.panels[_activePanel].sfx=this.value;render();snap();scheduleSave()">${sfx}</textarea>
+        <div class="rp-row" style="margin-top:6px">
+          <div style="flex:1"><label>Xoay °</label>
+            <input type="range" min="-45" max="45" value="${p.sfxRot||0}" style="width:100%;padding:0;background:0;border:0"
+              oninput="S.panels[_activePanel].sfxRot=+this.value;render()"></div>
+          <div style="flex:1"><label>Style</label>
+            <select class="rp-select" onchange="S.panels[_activePanel].sfxStyle=this.value;render()">
+              <option value="action"${(p.sfxStyle||'action')==='action'?' selected':''}>Action</option>
+              <option value="cute"${p.sfxStyle==='cute'?' selected':''}>Cute</option>
+              <option value="horror"${p.sfxStyle==='horror'?' selected':''}>Horror</option>
+            </select></div>
+        </div>
+      </div>
+      <div class="rp-sec-label">CAPTION</div>
+      <div class="bubble-section">
+        <textarea class="rp-textarea" placeholder="Caption / narrator text…"
+          oninput="S.panels[_activePanel].caption=this.value;render();snap();scheduleSave()">${p.caption||''}</textarea>
+      </div>`;
+  } else if(_rpTab==='style'){
+    const bscaleVal=Math.round((S.bubbleScale||1)*100);
+    bodyHtml=`
+      <div class="rp-sec-label">FONT CHỮ</div>
+      <div class="bubble-section">
+        <div class="rp-row"><div style="flex:1"><label>Typeface</label>
+          <select class="rp-select" onchange="S.font=this.value;render();snap();scheduleSave()">
+            <option value="patrick"${S.font==='patrick'?' selected':''}>Patrick Hand</option>
+            <option value="pangolin"${S.font==='pangolin'?' selected':''}>Pangolin</option>
+            <option value="bangers"${S.font==='bangers'?' selected':''}>Bangers</option>
+            <option value="caveat"${S.font==='caveat'?' selected':''}>Caveat</option>
+            <option value="bevn"${S.font==='bevn'?' selected':''}>Be Vietnam Pro</option>
+          </select></div></div>
+        <div class="rp-slider-row" style="margin-top:6px">
+          <label>Cỡ chữ</label>
+          <input type="range" min="20" max="70" value="${S.fontSize||40}"
+            oninput="S.fontSize=+this.value;this.nextElementSibling.textContent=this.value+'px';render()">
+          <span class="rp-slider-val">${S.fontSize||40}px</span>
+        </div>
+      </div>
+      <div class="rp-sec-label">SPEECH BUBBLE</div>
+      <div class="bubble-section">
+        <div class="rp-row"><div style="flex:1"><label>Shape mặc định</label>
+          <select class="rp-select" onchange="S.bubbleShape=this.value;render();snap();scheduleSave()">
+            <option value="oval"${S.bubbleShape==='oval'?' selected':''}>⬭ Oval</option>
+            <option value="rect"${S.bubbleShape==='rect'?' selected':''}>▭ Rect</option>
+            <option value="cloud"${S.bubbleShape==='cloud'?' selected':''}>☁ Cloud</option>
+            <option value="shout"${S.bubbleShape==='shout'?' selected':''}>⚡ Shout</option>
+          </select></div></div>
+        <div class="rp-slider-row" style="margin-top:6px">
+          <label>Scale</label>
+          <input type="range" min="50" max="150" value="${bscaleVal}"
+            oninput="S.bubbleScale=+this.value/100;this.nextElementSibling.textContent=this.value+'%';render()">
+          <span class="rp-slider-val">${bscaleVal}%</span>
+        </div>
+      </div>
+      <div class="rp-sec-label">MÀU NỀN PANEL</div>
+      <div class="bubble-section">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          ${['#E08160','#C85C3E','#7A9A78','#5B7FA6','#8B6BA8','#D4A843','#3D4A5C','#F2ECD8'].map(c=>`
+            <div style="width:24px;height:24px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${S.bgColor===c?'#2C2416':'transparent'};transition:all .1s"
+              onclick="S.bgColor='${c}';render();snap();scheduleSave();buildRightPanel()"></div>`).join('')}
+          <input type="color" value="${S.bgColor}" title="Màu tùy chỉnh"
+            style="width:24px;height:24px;border-radius:50%;border:2px dashed var(--border);cursor:pointer;padding:0;background:none"
+            oninput="S.bgColor=this.value;render();snap();scheduleSave()">
+        </div>
+      </div>
+      <div class="rp-sec-label">TIÊU ĐỀ &amp; TẬP</div>
+      <div class="bubble-section">
+        <div class="rp-row">
+          <div style="flex:2"><label>Tên truyện</label>
+            <input class="rp-select" value="${S.title||''}" oninput="S.title=this.value;render();snap();scheduleSave()"></div>
+          <div style="flex:1"><label>Tập</label>
+            <input class="rp-select" value="${S.ep||''}" oninput="S.ep=this.value;render();snap();scheduleSave()"></div>
+        </div>
+        <div class="rp-row" style="margin-top:4px">
+          <div style="flex:1"><label>Brand</label>
+            <input class="rp-select" value="${S.brand||''}" oninput="S.brand=this.value;render();snap();scheduleSave()"></div>
+        </div>
+      </div>`;
+  }
+
+  container.innerHTML=`
+    <div class="rp-header">
+      <div class="rp-title-row">
+        <span class="rp-title">${pi+1} Khung đang chọn</span>
+        <span class="rp-meta">${(SZ[S.size]||SZ.portrait).W}×${(SZ[S.size]||SZ.portrait).H} · ${S.size==='portrait'?'9:16':S.size==='square'?'1:1':S.size==='story'?'4:5':'16:9'}</span>
+      </div>
+      <div class="rp-tabs">${tabHtml}</div>
+    </div>
+    <div class="rp-body">${bodyHtml}</div>
+  `;
+}
+
+function setActiveBg(bgId){
+  const pi=Math.min(_activePanel, S.panels.length-1);
+  if(!S.panels[pi]) return;
+  S.panels[pi].bg=bgId;
+  render();snap();scheduleSave();
+  buildRightPanel();
+}
 
 // ══ BUILD EDITORS (US-13 context menu + US-14 drag handles) ══
 function buildEd(){
@@ -1381,7 +2099,7 @@ function buildEd(){
           <span>Scale</span>
           <input type="range" min="50" max="150" value="${sc1}" style="width:52px;padding:0;background:0;border:0"
             oninput="S.panels[${i}].scale1=+this.value;this.nextSibling.textContent=this.value+'%';render()"
-          ><span style="width:26px;font-size:9px;color:#666">${sc1}%</span>
+          ><span style="width:26px;font-size:9px;color:var(--text-3)">${sc1}%</span>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr auto;gap:3px;margin-bottom:3px;align-items:center">
@@ -1390,7 +2108,7 @@ function buildEd(){
           <span>Scale</span>
           <input type="range" min="50" max="150" value="${sc2}" style="width:52px;padding:0;background:0;border:0"
             oninput="S.panels[${i}].scale2=+this.value;this.nextSibling.textContent=this.value+'%';render()"
-          ><span style="width:26px;font-size:9px;color:#666">${sc2}%</span>
+          ><span style="width:26px;font-size:9px;color:var(--text-3)">${sc2}%</span>
         </div>
       </div>
       <!-- US-08: char3 + char4 -->
@@ -1530,8 +2248,9 @@ function resetPanels(){
     {char1:'halan-embarrassed',char2:'none',bg:'bg-room',b1:{text:'…À.',pos:'top-right'},b2:{text:'',pos:'top-left'},caption:'tưởng cái khác.\nphở Lý Quốc Sư đi.\nđông nhưng đáng.\ncấm hỏi thêm.\n— không nhìn vào mắt anh —'},
   ];
   S.layout='2x2';
+  _activePanel=0;
   document.querySelectorAll('#layout-picker .lp-btn').forEach((b,i)=>b.classList.toggle('on',i===0));
-  buildEd();render();snap();scheduleSave();
+  buildEd();buildLeftPanel();buildRightPanel();render();snap();scheduleSave();
 }
 
 // ══ US-24: AUTO TEXT-FIT HELPER ══
@@ -1589,15 +2308,49 @@ ${mkHdr(W,H,font)}
 ${panels}
 ${mkFtr(W,H,font)}
 <rect width="${W}" height="${H}" filter="url(#gr)" opacity="0.18" pointer-events="none"/>
+${mkPanelHitboxes(W,H)}
 </svg>`;
   const cw=document.getElementById('cw');
   cw.innerHTML=svg;
   const el=cw.querySelector('svg');
-  const maxW=document.getElementById('pv').clientWidth-24;
-  const maxH=document.getElementById('pv').clientHeight-24;
+  const wrap=document.querySelector('.canvas-wrap')||document.getElementById('pv');
+  const maxW=(wrap.clientWidth||800)-24;
+  const maxH=(wrap.clientHeight||600)-24;
   const sc=Math.min(maxW/W,maxH/H,1);
   el.style.width=W*sc+'px';el.style.height=H*sc+'px';
+  applyCanvasZoom();
+  renderStrip();
 }
+
+function mkPanelHitboxes(W,H){
+  const {c,r}=grd();
+  const n=cnt();
+  const aH=H-HDR-FTR-GAP*(r+1);
+  const pW=Math.floor((W-GAP*(c+1))/c);
+  const pH=Math.floor(aH/r);
+  let out='';
+  const box=(px,py,pw,ph,i)=>{
+    const isActive=i===_activePanel;
+    return `<rect x="${px}" y="${py}" width="${pw}" height="${ph}" fill="transparent"
+      stroke="${isActive?'#E08160':'transparent'}" stroke-width="${isActive?4:0}"
+      rx="2" style="cursor:pointer"
+      onclick="setActivePanel(${i})"/>`;
+  };
+  if(S.layout==='1+2'){
+    const bigW=Math.floor((W-GAP*(c+1))*0.55), smW=W-GAP*(c+1)-bigW-GAP;
+    const smH=Math.floor((aH-GAP)/2);
+    out+=box(GAP,HDR+GAP,bigW,aH,0);
+    out+=box(GAP+bigW+GAP,HDR+GAP,smW,smH,1);
+    out+=box(GAP+bigW+GAP,HDR+GAP+smH+GAP,smW,smH,2);
+  } else {
+    for(let i=0;i<n;i++){
+      const col=i%c, row=Math.floor(i/c);
+      out+=box(GAP+col*(pW+GAP), HDR+GAP+row*(pH+GAP), pW, pH, i);
+    }
+  }
+  return out;
+}
+
 
 function mkHdr(W,H,f){
   return `<rect x="0" y="0" width="${W}" height="${HDR}" fill="#2C2416" opacity="0.88"/>
@@ -1647,10 +2400,14 @@ function mkPanel(px,py,pW,pH,panel,font){
   // ── bubbles ──
   let bubSVG='';
   const narrs=[];
-  [panel.b1,panel.b2].forEach(b=>{
+  // charCX: x center of primary character, used to aim bubble tail
+  const charCX = px + pW * (cxPositions[0] || 0.5);
+  [panel.b1,panel.b2].forEach((b,bi)=>{
     if(!b?.text?.trim()) return;
-    if(b.type==='narrator') narrs.push(b);
-    else bubSVG+=mkBubble(b.text, b.pos||'top-left', px, py, pW, charZoneH, font, b.shape||'', b.type||'speech');
+    if(b.type==='narrator'){narrs.push(b);return;}
+    // aim tail at the character speaking: b1→char1, b2→char2 if exists else char1
+    const aimCX = (bi===1 && cxPositions.length>1) ? px + pW * cxPositions[1] : charCX;
+    bubSVG+=mkBubble(b.text, b.pos||'top-left', px, py, pW, charZoneH, font, b.shape||'', b.type||'speech', aimCX);
   });
 
   // ── narrator boxes (US-23) ──
@@ -1752,7 +2509,7 @@ function placeChar(id, cx, panelY, pW, charZoneH, scaleMul, nChars){
 }
 
 // ══ BUBBLE ENGINE (US-19/20/21 types) ══
-function mkBubble(text,pos,px,py,pW,charZoneH,font,shapeOverride,bubType){
+function mkBubble(text,pos,px,py,pW,charZoneH,font,shapeOverride,bubType,charCX){
   // US-20/21: override shape based on type
   const type=bubType||'speech';
   let shape=shapeOverride||S.bubbleShape||'oval';
@@ -1836,85 +2593,61 @@ font-weight="${textW}" fill="${textFill}" text-anchor="middle">${esc(l)}</text>`
   let shapeSVG = '';
 
   if(shape==='oval'){
-    // pure ellipse body — Gia Đình Ngộ style
-    const rx = bw/2, ry = bh/2;
-    // tail: curved bezier spike from ellipse edge
-    const tailAnchorX = cx + (hPart==='right'? rx*0.3 : hPart==='left'? -rx*0.3 : 0);
-    let tailSVG = '';
-    if(isTop){
-      const ay = by + bh;                   // bottom of ellipse
-      const tipX = tailAnchorX + (hPart==='right'? 8 : hPart==='left'? -8 : 0);
-      const tipY = ay + tailH;
-      // curved tail — one side straight, one concave (classic Korean/VN webtoon style)
-      tailSVG=`<path d="M ${tailAnchorX-6} ${ay-4}
-  Q ${tailAnchorX-2} ${ay+tailH*0.6} ${tipX} ${tipY}
-  Q ${tailAnchorX+8} ${ay+tailH*0.5} ${tailAnchorX+8} ${ay-4} Z"
-  fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
-    } else {
-      const ay = by;
-      const tipX = tailAnchorX + (hPart==='right'? 8 : hPart==='left'? -8 : 0);
-      const tipY = ay - tailH;
-      tailSVG=`<path d="M ${tailAnchorX-6} ${ay+4}
-  Q ${tailAnchorX-2} ${ay-tailH*0.6} ${tipX} ${tipY}
-  Q ${tailAnchorX+8} ${ay-tailH*0.5} ${tailAnchorX+8} ${ay+4} Z"
-  fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
-    }
-    shapeSVG=`${tailSVG}
-<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"
+    // soft oval — no tail, just a clean ellipse with more vertical padding
+    const rx = bw/2 + 4, ry = bh/2 + 6;
+    shapeSVG=`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"
   fill="${bubFill}" stroke="${bubStroke}" stroke-width="${sw}" ${bubDash}/>`;
   }
 
   else if(shape==='rect'){
-    // rounded rectangle (original style, improved)
-    const r = Math.min(14, bh*0.35);
-    const tailCX = Math.min(Math.max(cx, bx+r+8), bx+bw-r-8);
-    let tailSVG='';
-    if(isTop){
-      const ty=by+bh;
-      tailSVG=`<path d="M ${tailCX-8} ${ty} Q ${tailCX} ${ty+tailH*0.6} ${tailCX} ${ty+tailH} Q ${tailCX} ${ty+tailH*0.6} ${tailCX+8} ${ty} Z"
-fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
-    } else {
-      const ty=by;
-      tailSVG=`<path d="M ${tailCX-8} ${ty} Q ${tailCX} ${ty-tailH*0.6} ${tailCX} ${ty-tailH} Q ${tailCX} ${ty-tailH*0.6} ${tailCX+8} ${ty} Z"
-fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
-    }
+    // rounded rectangle — no tail
+    const r = Math.min(18, bh*0.4);
     const bp=`M ${bx+r} ${by} L ${bx+bw-r} ${by} Q ${bx+bw} ${by} ${bx+bw} ${by+r}
 L ${bx+bw} ${by+bh-r} Q ${bx+bw} ${by+bh} ${bx+bw-r} ${by+bh}
 L ${bx+r} ${by+bh} Q ${bx} ${by+bh} ${bx} ${by+bh-r}
 L ${bx} ${by+r} Q ${bx} ${by} ${bx+r} ${by} Z`;
-    shapeSVG=`${tailSVG}
-<path d="${bp}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
+    shapeSVG=`<path d="${bp}" fill="${bubFill}" stroke="${bubStroke}" stroke-width="${sw}" stroke-linejoin="round" ${bubDash}/>`;
   }
 
   else if(shape==='cloud'){
-    // cloud bubble — series of overlapping circles on perimeter + small thought dots
+    // smooth cloud using SVG path with scalloped edges — cleaner than circles
     const rx=bw/2, ry=bh/2;
-    const bumps=Math.max(5, Math.round(bw/38));
-    const br=bh*0.22; // bump radius
-    let cloudPath=`<ellipse cx="${cx}" cy="${cy}" rx="${rx*0.94}" ry="${ry*0.88}" fill="#FBF8E8" stroke="none"/>`;
-    // top bumps
-    for(let b=0;b<bumps;b++){
-      const bx2=bx+br+(b/(bumps-1))*(bw-br*2);
-      cloudPath+=`<circle cx="${bx2}" cy="${by+br*0.4}" r="${br}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw*0.9}"/>`;
+    const bumps=Math.max(4, Math.round(bw/52));
+    const br=ry*0.38; // scallop radius
+    // build top scalloped edge
+    const stepX=(bw-br*2)/bumps;
+    let topPath='', botPath='';
+    for(let b=0;b<=bumps;b++){
+      const bx2=bx+br+b*stepX;
+      const topY=by+br*0.5;
+      const botY=by+bh-br*0.5;
+      if(b===0){
+        topPath+=`M ${bx2} ${topY}`;
+        botPath+=`L ${bx2} ${botY}`;
+      } else {
+        const prevX=bx+br+(b-1)*stepX;
+        topPath+=` Q ${prevX+stepX/2} ${by-br*0.3} ${bx2} ${topY}`;
+        botPath+=` Q ${prevX+stepX/2} ${by+bh+br*0.3} ${bx2} ${botY}`;
+      }
     }
-    // bottom bumps
-    for(let b=0;b<bumps;b++){
-      const bx2=bx+br+(b/(bumps-1))*(bw-br*2);
-      cloudPath+=`<circle cx="${bx2}" cy="${by+bh-br*0.4}" r="${br}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw*0.9}"/>`;
-    }
-    // left/right small bumps
-    cloudPath+=`<circle cx="${bx+br*0.4}" cy="${cy}" r="${br*0.85}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw*0.9}"/>`;
-    cloudPath+=`<circle cx="${bx+bw-br*0.4}" cy="${cy}" r="${br*0.85}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw*0.9}"/>`;
-    // white interior fill over strokes
-    cloudPath+=`<ellipse cx="${cx}" cy="${cy}" rx="${rx*0.88}" ry="${ry*0.82}" fill="#FBF8E8" stroke="none"/>`;
-    // thought dots tail
-    const dotDir = isTop ? 1 : -1;
-    const dotStartX = hPart==='right' ? cx+rx*0.3 : hPart==='left' ? cx-rx*0.3 : cx;
-    const dotStartY = isTop ? by+bh+br*0.4 : by-br*0.4;
-    cloudPath+=`<circle cx="${dotStartX}" cy="${dotStartY+dotDir*8}" r="${br*0.55}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw*0.85}"/>`;
-    cloudPath+=`<circle cx="${dotStartX+(hPart==='right'?4:hPart==='left'?-4:0)}" cy="${dotStartY+dotDir*18}" r="${br*0.38}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw*0.8}"/>`;
-    cloudPath+=`<circle cx="${dotStartX+(hPart==='right'?7:hPart==='left'?-7:0)}" cy="${dotStartY+dotDir*26}" r="${br*0.25}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw*0.75}"/>`;
-    shapeSVG=cloudPath;
+    // right side arc, bottom scallops (reverse), left side arc
+    const cloudD=`${topPath}
+      Q ${bx+bw+br*0.3} ${by+br*0.5} ${bx+bw+br*0.2} ${cy}
+      Q ${bx+bw+br*0.3} ${by+bh-br*0.5} ${bx+bw-br} ${by+bh-br*0.5}
+      ${botPath.replace('L ','').split(' Q ').reverse().map((seg,i)=>(i===0?'L ':' Q ')+seg).join('')}
+      Q ${bx-br*0.3} ${by+bh-br*0.5} ${bx-br*0.2} ${cy}
+      Q ${bx-br*0.3} ${by+br*0.5} ${bx+br} ${topY} Z`.replace(/topY/g, by+br*0.5);
+    shapeSVG=`<ellipse cx="${cx}" cy="${cy}" rx="${rx+br*0.2}" ry="${ry+br*0.15}"
+  fill="${bubFill}" stroke="${bubStroke}" stroke-width="${sw}" stroke-dasharray="6 4" ${bubDash}/>
+<ellipse cx="${cx}" cy="${cy}" rx="${rx+br*0.2}" ry="${ry+br*0.15}" fill="${bubFill}" stroke="none"/>
+${Array.from({length:bumps+1},(_,b)=>{
+  const bx2=bx+br+b*stepX;
+  return `<circle cx="${bx2}" cy="${by+br*0.35}" r="${br*0.72}" fill="${bubFill}" stroke="${bubStroke}" stroke-width="${sw*0.85}"/>
+<circle cx="${bx2}" cy="${by+bh-br*0.35}" r="${br*0.72}" fill="${bubFill}" stroke="${bubStroke}" stroke-width="${sw*0.85}"/>`;
+}).join('')}
+<circle cx="${bx+br*0.35}" cy="${cy}" r="${br*0.6}" fill="${bubFill}" stroke="${bubStroke}" stroke-width="${sw*0.85}"/>
+<circle cx="${bx+bw-br*0.35}" cy="${cy}" r="${br*0.6}" fill="${bubFill}" stroke="${bubStroke}" stroke-width="${sw*0.85}"/>
+<ellipse cx="${cx}" cy="${cy}" rx="${rx*0.85}" ry="${ry*0.8}" fill="${bubFill}" stroke="none"/>`;
   }
 
   else if(shape==='shout'){
@@ -1929,20 +2662,8 @@ L ${bx} ${by+r} Q ${bx} ${by} ${bx+r} ${by} Z`;
       const r2 = i%2===0 ? outerR : Math.sqrt(innerRx*innerRx*Math.cos(angle)*Math.cos(angle)+innerRy*innerRy*Math.sin(angle)*Math.sin(angle));
       pts+=`${cx+Math.cos(angle)*r2},${cy+Math.sin(angle)*r2} `;
     }
-    // tail
-    const tailCX2=cx+(hPart==='right'?rx*0.4:hPart==='left'?-rx*0.4:0);
-    let tailSVG2='';
-    if(isTop){
-      const ty=cy+ry;
-      tailSVG2=`<polygon points="${tailCX2-9},${ty} ${tailCX2},${ty+tailH+6} ${tailCX2+9},${ty}"
-fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
-    } else {
-      const ty=cy-ry;
-      tailSVG2=`<polygon points="${tailCX2-9},${ty} ${tailCX2},${ty-tailH-6} ${tailCX2+9},${ty}"
-fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
-    }
-    shapeSVG=`${tailSVG2}
-<polygon points="${pts.trim()}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
+    // no tail — just the spiky polygon
+    shapeSVG=`<polygon points="${pts.trim()}" fill="#FBF8E8" stroke="#2C2416" stroke-width="${sw}" stroke-linejoin="round"/>`;
   }
 
   return `<g>${shapeSVG}${textRows}</g>`;
@@ -2049,7 +2770,7 @@ async function aiGenerateScript(){
   if(!prompt) return;
   const btn=document.getElementById('ai-gen-btn');
   btn.disabled=true; btn.textContent='⏳ Đang tạo…';
-  showAiResult('<p style="color:#666;font-size:10px">Đang phân tích tình huống…</p>');
+  showAiResult('<p style="color:var(--text-3);font-size:10px">Đang phân tích tình huống…</p>');
 
   // Rule-based generator (works without API)
   await new Promise(r=>setTimeout(r,800));
@@ -2082,7 +2803,7 @@ function renderAiScript(script){
       <h5>Panel ${p.panel}</h5>
       <p><b>Nhân vật:</b> ${p.char} &nbsp;|&nbsp; <b>Emotion:</b> ${p.emotion}</p>
       <p><b>Bubble:</b> "${p.bubble}"</p>
-      ${p.caption?`<p style="color:#666;font-style:italic">${p.caption}</p>`:''}
+      ${p.caption?`<p style="color:var(--text-3);font-style:italic">${p.caption}</p>`:''}
       <button onclick="applyAiPanel(${p.panel-1},'${esc2(p.char)}','${esc2(p.bubble)}','${esc2(p.emotion)}','${esc2(p.caption)}')">Apply Panel ${p.panel}</button>
     </div>`).join('');
   showAiResult(html+`<button class="btn btn-p" style="width:100%;margin-top:6px" onclick="applyAllAiPanels(${JSON.stringify(script).replace(/</g,'\\u003c')})">✅ Apply tất cả ${script.length} panel</button>`);
@@ -2115,7 +2836,7 @@ async function aiGenerateTitles(){
   const allText=S.panels.map(p=>[p.b1?.text,p.b2?.text,p.caption].filter(Boolean).join(' ')).join(' ');
   const key=allText.split(' ').filter(w=>w.length>2).slice(0,3).join('');
   const el=document.getElementById('ai-titles');
-  if(!allText.trim()){el.innerHTML='<p style="color:#666;font-size:10px">Hãy điền dialogue vào các panel trước!</p>';return;}
+  if(!allText.trim()){el.innerHTML='<p style="color:var(--text-3);font-size:10px">Hãy điền dialogue vào các panel trước!</p>';return;}
 
   const suggestions=TITLE_TONES.map((tone,ti)=>{
     const templates=TITLE_TEMPLATES[ti];
@@ -2127,8 +2848,8 @@ async function aiGenerateTitles(){
 
   el.innerHTML=suggestions.map(({tone,title})=>`
     <div class="ai-card" style="display:flex;align-items:center;gap:8px;padding:8px 10px">
-      <span style="font-size:10px;color:#666;min-width:90px">${tone}</span>
-      <span style="flex:1;font-size:11px;color:#ccc">"${title}"</span>
+      <span style="font-size:10px;color:var(--text-3);min-width:90px">${tone}</span>
+      <span style="flex:1;font-size:11px;color:var(--text)">"${title}"</span>
       <button onclick="applyTitle('${esc2(title)}')" style="background:#1a2030;border:1px solid #5B9BD5;color:#5B9BD5;border-radius:4px;padding:3px 8px;font-size:9px;cursor:pointer;font-family:inherit">Dùng</button>
     </div>`).join('');
 }
@@ -2150,7 +2871,7 @@ async function aiImprovePunchline(){
   const current=S.panels[idx]?.b1?.text||'';
   const context=S.panels.slice(0,idx).map(p=>p.b1?.text||'').filter(Boolean).join(' → ');
   const el=document.getElementById('ai-punch-result');
-  if(!current.trim()){el.innerHTML='<p style="color:#666;font-size:10px">Panel này chưa có bubble text!</p>';return;}
+  if(!current.trim()){el.innerHTML='<p style="color:var(--text-3);font-size:10px">Panel này chưa có bubble text!</p>';return;}
 
   const variants=[
     {label:'😂 Funnier',    text:current+' (nhưng thật ra anh lo quá)'},
@@ -2160,8 +2881,8 @@ async function aiImprovePunchline(){
   ];
   el.innerHTML=variants.map(v=>`
     <div class="ai-card" style="display:flex;align-items:center;gap:8px;padding:8px 10px">
-      <span style="font-size:9px;color:#666;min-width:90px">${v.label}</span>
-      <span style="flex:1;font-size:11px;color:#ccc">"${v.text}"</span>
+      <span style="font-size:9px;color:var(--text-3);min-width:90px">${v.label}</span>
+      <span style="flex:1;font-size:11px;color:var(--text)">"${v.text}"</span>
       <button onclick="applyPunchline(${idx},'${esc2(v.text)}')"
         style="background:#1e1008;border:1px solid #C85C3E;color:#C85C3E;border-radius:4px;padding:3px 8px;font-size:9px;cursor:pointer;font-family:inherit">Dùng</button>
     </div>`).join('');
@@ -2281,7 +3002,7 @@ function renderSeriesGrid(){
         <button onclick="event.stopPropagation();deleteStrip('${strip.id}')"
           style="font-size:8px;padding:2px 5px;background:#2a1010;border:1px solid #4a2020;color:#C85C3E;border-radius:3px;cursor:pointer;font-family:inherit">🗑</button>
         <button onclick="event.stopPropagation();duplicateStrip('${strip.id}')"
-          style="font-size:8px;padding:2px 5px;background:#1e1e1e;border:1px solid #333;color:#888;border-radius:3px;cursor:pointer;font-family:inherit">⧉</button>
+          style="font-size:8px;padding:2px 5px;background:var(--surface2);border:1px solid var(--border);color:var(--text-2);border-radius:3px;cursor:pointer;font-family:inherit">⧉</button>
       </div>
     </div>`).join('')+`
     <div class="strip-card" onclick="seriesNewStrip()" style="display:flex;align-items:center;justify-content:center;min-height:120px;border-style:dashed">
@@ -2333,10 +3054,8 @@ function loadStrip(id){
   saveCurrentStrip(); // save current before switching
   Object.assign(S,JSON.parse(JSON.stringify(strip.state)));
   localStorage.setItem(SAVE_KEY+'-id',id);
-  document.querySelectorAll('#layout-picker .lp-btn').forEach(b=>{
-    b.classList.toggle('on',b.getAttribute('onclick')?.includes(`'${S.layout}'`));
-  });
-  buildEd();render();snap();scheduleSave();
+  _activePanel=0; _lpSlot='char1'; _rpTab='khung';
+  buildEd();buildLeftPanel();buildRightPanel();render();renderStrip();snap();scheduleSave();
   closeSeries();
 }
 
@@ -2395,10 +3114,8 @@ function restoreVersion(id){
   if(!confirm(`Restore về "${v.name}"?\n(Sẽ tạo snapshot của trạng thái hiện tại trước)`)) return;
   saveVersion('Before restore'); // save current
   Object.assign(S,JSON.parse(JSON.stringify(v.state)));
-  document.querySelectorAll('#layout-picker .lp-btn').forEach(b=>{
-    b.classList.toggle('on',b.getAttribute('onclick')?.includes(`'${S.layout}'`));
-  });
-  buildEd();render();snap();scheduleSave();
+  _activePanel=0; _lpSlot='char1'; _rpTab='khung';
+  buildEd();buildLeftPanel();buildRightPanel();render();renderStrip();snap();scheduleSave();
   closeSeries();
 }
 
@@ -2420,10 +3137,6 @@ function toggleDark(){
   const isDark=document.body.classList.contains('dark');
   if(btn) btn.textContent=isDark?'☀️':'🌙';
   localStorage.setItem('dreamers-dark',isDark?'1':'');
-}
-// auto-detect system preference on first load
-if(window.matchMedia('(prefers-color-scheme: dark)').matches||localStorage.getItem('dreamers-dark')){
-  document.body.classList.add('dark');
 }
 
 // ══ US-17: WEBTOON VERTICAL STRIP EXPORT ══
@@ -2466,13 +3179,84 @@ document.addEventListener('keydown',e=>{
   }
 });
 
+// ══ CANVAS ZOOM (Phase 1 topbar) ══
+let _canvasScale=1;
+function adjustZoom(delta){
+  _canvasScale=Math.max(0.25,Math.min(3,_canvasScale+delta));
+  applyCanvasZoom();
+}
+function resetZoom(){
+  _canvasScale=1;
+  applyCanvasZoom();
+}
+function applyCanvasZoom(){
+  const cw=document.getElementById('cw');
+  if(cw) cw.style.transform=`scale(${_canvasScale})`;
+  const lbl=document.getElementById('zoom-lbl');
+  if(lbl) lbl.textContent=Math.round(_canvasScale*100)+'%';
+}
+
+// ══ PANELS STRIP (bottom) ══
+function renderStrip(){
+  const ct=document.getElementById('strip-thumbs');
+  if(!ct) return;
+  const count=document.getElementById('strip-count');
+  if(count) count.textContent=`${S.panels.length} panel${S.panels.length!==1?'s':''}`;
+  ct.innerHTML='';
+  S.panels.forEach((p,i)=>{
+    const c=document.createElement('div');
+    c.className='strip-thumb-card'+(i===_activePanel?' active':'');
+    c.title=`Khung ${i+1}`;
+    c.onclick=()=>setActivePanel(i);
+
+    // Mini SVG preview
+    const bg=S.bgColor;
+    const bgId=p.bg&&p.bg!=='bg-plain'?p.bg:null;
+    const char1=p.char1&&p.char1!=='none'?p.char1:null;
+    const bgUse=bgId?`<use href="#${bgId}" x="0" y="0" width="48" height="60"/>`:'';
+    const charUse=char1?`<use href="#${char1}" x="6" y="10" width="36" height="46"/>`:
+      `<text x="24" y="36" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.3)" font-family="sans-serif">${i+1}</text>`;
+    c.innerHTML=`<svg viewBox="0 0 48 60" width="48" height="60" xmlns="http://www.w3.org/2000/svg">
+      <rect width="48" height="60" fill="${bg}"/>
+      ${bgUse}
+      ${charUse}
+    </svg>
+    <span class="strip-thumb-num">${i+1}</span>`;
+    ct.appendChild(c);
+  });
+}
+
+// ══ ADD PANEL ══
+function addPanel(){
+  const tpl=JSON.parse(JSON.stringify(S.panels[S.panels.length-1]||{
+    char1:'dung-deadpan',char2:'none',bg:'bg-plain',
+    b1:{text:'',pos:'top-left'},b2:{text:'',pos:'top-right'},caption:''
+  }));
+  tpl.b1={...tpl.b1,text:''};
+  tpl.b2={...tpl.b2,text:''};
+  tpl.sfx='';tpl.caption='';
+  S.panels.push(tpl);
+  // auto-upgrade layout if more panels than current layout supports
+  const need=S.panels.length;
+  if(need>cnt()){
+    const upgrade={1:'1x1',2:'1x2',3:'1x3',4:'2x2',5:'1x4',6:'2x2'}[need]||'2x2';
+    S.layout=upgrade;
+    if(need>6) S.panels.length=6; // hard cap at 6
+  }
+  _activePanel=S.panels.length-1; // jump to newly added panel
+  buildLeftPanel();buildRightPanel();
+  snapshot();render();renderStrip();scheduleSave();
+}
+
 // ══ INIT ══
 const hadDraft=loadDraft();
+// Reset transient UI state in case draft had stale slot/tab
+_activePanel=0; _lpSlot='char1'; _rpTab='khung';
 buildEd();
+buildLeftPanel();
+buildRightPanel();
 render();
-document.querySelectorAll('#layout-picker .lp-btn').forEach(b=>{
-  b.classList.toggle('on', b.getAttribute('onclick')?.includes(`'${S.layout}'`));
-});
+renderStrip();
 snapshot();
 
 // US-27 autocomplete
@@ -2490,8 +3274,8 @@ const _origRender=render;
 document.getElementById('ai-modal')?.addEventListener('click',e=>{if(e.target===document.getElementById('ai-modal'))closeAi();});
 document.getElementById('series-modal')?.addEventListener('click',e=>{if(e.target===document.getElementById('series-modal'))closeSeries();});
 
-// Dark mode init
-if(window.matchMedia('(prefers-color-scheme:dark)').matches||localStorage.getItem('dreamers-dark')){
+// Dark mode init — default light; only activate if user explicitly toggled
+if(localStorage.getItem('dreamers-dark')==='1'){
   document.body.classList.add('dark');
   const b=document.getElementById('btn-dark');
   if(b) b.textContent='☀️';
